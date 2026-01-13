@@ -1,4 +1,6 @@
 import { useState } from "react";
+import * as XLSX from "xlsx";
+import "./app.css";
 
 function CSMCanvas({ machines, onClose }) {
   const startX = 220;
@@ -9,17 +11,17 @@ function CSMCanvas({ machines, onClose }) {
 
   const svgWidth = startX + machines.length * gap + 500;
   const svgHeight = 800;
-
+  
   return (
-    <div style={styles.modalOverlay} onClick={onClose}>
-      <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <div style={styles.modalHeader}>
-          <h2 style={styles.modalTitle}>Value Stream Map</h2>
-          <button style={styles.closeButton} onClick={onClose}>✕</button>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2 className="modal-title">Current Stream Map</h2>
+          <button className="close-button" onClick={onClose}>✕</button>
         </div>
         
-        <div style={styles.canvasWrapper}>
-          <svg width={svgWidth} height={svgHeight} style={styles.svg}>
+        <div className="canvas-wrapper">
+          <svg width={svgWidth} height={svgHeight} className="svg-canvas">
             {/* SUPPLIER BOX */}
             <g>
               <rect
@@ -323,15 +325,15 @@ function CSMCanvas({ machines, onClose }) {
               {/* Timeline Base */}
               <line
                 x1={startX}
-                y1={yInventory + 120}
+                y1={yInventory + 130}
                 x2={startX + machines.length * gap}
-                y2={yInventory + 120}
+                y2={yInventory + 130}
                 stroke="#2d3748"
                 strokeWidth="2"
               />
 
               {machines.map((m, i) => {
-                const x = startX + i * gap + 100;
+                const x = startX + i * gap + 110;
                 const cycleTime = m.cycleTime || 0;
                 const inventoryDays = i < machines.length - 1 ? (machines[i + 1].inventory || 0) : 0;
 
@@ -606,6 +608,41 @@ function App() {
       operators: "",
     };
   }
+  const handleExcelUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+  
+    const reader = new FileReader();
+  
+    reader.onload = (evt) => {
+      const data = new Uint8Array(evt.target.result);
+      const workbook = XLSX.read(data, { type: "array" });
+  
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet);
+  
+      const parsedMachines = rows.map((row) => ({
+        name: row["Machine Name"] || "",
+        hours: Number(row["No of Available Hours daily"] || 0),
+        seconds: Number(row["Total Time (sec)"] || 0),
+        threeMonths: Number(row["Available time for last 3 months"] || 0),
+        rework: Number(row["Rework % last 3 months"] || ""),
+        rejection: Number(row["Rejection % last 3 months"] || ""),
+        breakdown: Number(row["last 3 months brkdown %"] || ""),
+        avgChange: Number(row["Avg Changeover Time (min)"] || 0),
+        changeCount: Number(row["No of Changeover per month"] || 0),
+        totalChange: Number(row["Total Changeover"] || 0),
+        cycleTime: Number(row["Cycle Time (sec)"] || 0),
+        inventory: Number(row["Inventory before operations (days)"] || 0),
+        operators: Number(row["No. of Operators (No.)"] || 1),
+      }));
+  
+      setMachines(parsedMachines);
+    };
+  
+    reader.readAsArrayBuffer(file);
+  };
+  
 
   const totalBreakTime = breaks.reduce(
     (sum, b) => sum + Number(b.lunch || 0) + Number(b.tea || 0),
@@ -662,40 +699,40 @@ function App() {
   };
 
   return (
-    <div style={styles.wrapper}>
-      <div style={styles.header}>
-        <h1 style={styles.title}>Current Stream Mapping</h1>
+    <div className="app-wrapper">
+      <div className="header">
+        <h1 className="title">Current Stream Mapping</h1>
       </div>
 
-      <div style={styles.container}>
+      <div className="container">
         {/* Industry Information */}
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>
-            <span style={styles.icon}>🏭</span>
+        <div className="section">
+          <h2 className="section-title">
+            <span className="icon"></span>
             Industry Information
           </h2>
-          <div style={styles.grid}>
+          <div className="grid">
             <input
-              style={styles.input}
+              className="input"
               placeholder="Industry Name"
               value={industryName}
               onChange={(e) => setIndustryName(e.target.value)}
             />
             <input
-              style={styles.input}
+              className="input"
               placeholder="Production Line Names"
               value={productionLine}
               onChange={(e) => setProductionLine(e.target.value)}
             />
             <input
-              style={styles.input}
+              className="input"
               type="number"
               placeholder="Working Days per Month"
               value={workingDays}
               onChange={(e) => setWorkingDays(e.target.value)}
             />
             <input
-              style={styles.input}
+              className="input"
               type="number"
               placeholder="Monthly Production Rate"
               value={monthlyRate}
@@ -704,24 +741,24 @@ function App() {
           </div>
 
           {perDayProduction && (
-            <div style={styles.statCard}>
-              <div style={styles.statLabel}>Daily Production Target</div>
-              <div style={styles.statValue}>{perDayProduction} units</div>
+            <div className="stat-card">
+              <div className="stat-label">Daily Production Target</div>
+              <div className="stat-value">{perDayProduction} units</div>
             </div>
           )}
         </div>
 
         {/* Breaks Section */}
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>
-            <span style={styles.icon}>⏰</span>
+        <div className="section">
+          <h2 className="section-title">
+            <span className="icon"></span>
             Shift Breaks
           </h2>
           {breaks.map((b, i) => (
-            <div key={i} style={styles.breakRow}>
-              <span style={styles.shiftLabel}>Shift {i + 1}</span>
+            <div key={i} className="break-row">
+              <span className="shift-label">Shift {i + 1}</span>
               <input
-                style={styles.inputSmall}
+                className="input-small"
                 type="number"
                 placeholder="Lunch/Dinner (min)"
                 value={b.lunch}
@@ -732,7 +769,7 @@ function App() {
                 }}
               />
               <input
-                style={styles.inputSmall}
+                className="input-small"
                 type="number"
                 placeholder="Tea (min)"
                 value={b.tea}
@@ -744,131 +781,131 @@ function App() {
               />
             </div>
           ))}
-          <button style={styles.buttonSecondary} onClick={addShift}>
+          <button className="button-secondary" onClick={addShift}>
             + Add Shift
           </button>
 
-          <div style={styles.statsGrid}>
-            <div style={styles.miniStatCard}>
-              <div style={styles.miniStatLabel}>Total Break Time</div>
-              <div style={styles.miniStatValue}>{totalBreakTime} min</div>
+          <div className="stats-grid">
+            <div className="mini-stat-card">
+              <div className="mini-stat-label">Total Break Time</div>
+              <div className="mini-stat-value">{totalBreakTime} min</div>
             </div>
-            <div style={styles.miniStatCard}>
-              <div style={styles.miniStatLabel}>Available Time</div>
-              <div style={styles.miniStatValue}>{totalAvailableTime.toLocaleString()} sec</div>
+            <div className="mini-stat-card">
+              <div className="mini-stat-label">Available Time</div>
+              <div className="mini-stat-value">{totalAvailableTime.toLocaleString()} sec</div>
             </div>
           </div>
         </div>
 
         {/* Machines Section */}
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>
-            <span style={styles.icon}>⚙️</span>
+        <div className="section">
+          <h2 className="section-title">
+            <span className="icon"></span>
             Machine Configuration
           </h2>
           
-          <div style={styles.tableWrapper}>
-            <table style={styles.table}>
+          <div className="table-wrapper">
+            <table className="table">
               <thead>
                 <tr>
-                  <th style={styles.th}>#</th>
-                  <th style={styles.th}>Machine Name</th>
-                  <th style={styles.th}>Avail. Hours/Day</th>
-                  <th style={styles.th}>Total Time (sec)</th>
-                  <th style={styles.th}>3 Mo. Time (sec)</th>
-                  <th style={styles.th}>Rework %</th>
-                  <th style={styles.th}>Rejection %</th>
-                  <th style={styles.th}>Breakdown %</th>
-                  <th style={styles.th}>Avg Change (min)</th>
-                  <th style={styles.th}>Changes/Mo</th>
-                  <th style={styles.th}>Total Change (min)</th>
-                  <th style={styles.th}>Cycle Time (sec)</th>
-                  <th style={styles.th}>Inventory (days)</th>
-                  <th style={styles.th}>Operators</th>
+                  <th className="th">#</th>
+                  <th className="th">Machine Name</th>
+                  <th className="th">Avail. Hours/Day</th>
+                  <th className="th">Total Time (sec)</th>
+                  <th className="th">3 Mo. Time (sec)</th>
+                  <th className="th">Rework %</th>
+                  <th className="th">Rejection %</th>
+                  <th className="th">Breakdown %</th>
+                  <th className="th">Avg Change (min)</th>
+                  <th className="th">Changes/Mo</th>
+                  <th className="th">Total Change (min)</th>
+                  <th className="th">Cycle Time (sec)</th>
+                  <th className="th">Inventory (days)</th>
+                  <th className="th">Operators</th>
                 </tr>
               </thead>
               <tbody>
                 {machines.map((m, i) => (
-                  <tr key={i} style={styles.tr}>
-                    <td style={styles.td}>{i + 1}</td>
-                    <td style={styles.td}>
+                  <tr key={i} className="tr">
+                    <td className="td">{i + 1}</td>
+                    <td className="td">
                       <input
-                        style={styles.tableInput}
+                        className="table-input"
                         placeholder="Machine"
                         value={m.name}
                         onChange={(e) => updateMachine(i, "name", e.target.value)}
                       />
                     </td>
-                    <td style={styles.td}>
+                    <td className="td">
                       <input
-                        style={styles.tableInput}
+                        className="table-input"
                         type="number"
                         value={m.hours}
                         onChange={(e) => updateMachine(i, "hours", e.target.value)}
                       />
                     </td>
-                    <td style={{...styles.td, ...styles.readOnly}}>{m.seconds}</td>
-                    <td style={{...styles.td, ...styles.readOnly}}>{m.threeMonths}</td>
-                    <td style={styles.td}>
+                    <td className="td read-only">{m.seconds}</td>
+                    <td className="td read-only">{m.threeMonths}</td>
+                    <td className="td">
                       <input
-                        style={styles.tableInput}
+                        className="table-input"
                         type="number"
                         value={m.rework}
                         onChange={(e) => updateMachine(i, "rework", e.target.value)}
                       />
                     </td>
-                    <td style={styles.td}>
+                    <td className="td">
                       <input
-                        style={styles.tableInput}
+                        className="table-input"
                         type="number"
                         value={m.rejection}
                         onChange={(e) => updateMachine(i, "rejection", e.target.value)}
                       />
                     </td>
-                    <td style={styles.td}>
+                    <td className="td">
                       <input
-                        style={styles.tableInput}
+                        className="table-input"
                         type="number"
                         value={m.breakdown}
                         onChange={(e) => updateMachine(i, "breakdown", e.target.value)}
                       />
                     </td>
-                    <td style={styles.td}>
+                    <td className="td">
                       <input
-                        style={styles.tableInput}
+                        className="table-input"
                         type="number"
                         value={m.avgChange}
                         onChange={(e) => updateMachine(i, "avgChange", e.target.value)}
                       />
                     </td>
-                    <td style={styles.td}>
+                    <td className="td">
                       <input
-                        style={styles.tableInput}
+                        className="table-input"
                         type="number"
                         value={m.changeCount}
                         onChange={(e) => updateMachine(i, "changeCount", e.target.value)}
                       />
                     </td>
-                    <td style={{...styles.td, ...styles.readOnly}}>{m.totalChange}</td>
-                    <td style={styles.td}>
+                    <td className="td read-only">{m.totalChange}</td>
+                    <td className="td">
                       <input
-                        style={styles.tableInput}
+                        className="table-input"
                         type="number"
                         value={m.cycleTime}
                         onChange={(e) => updateMachine(i, "cycleTime", e.target.value)}
                       />
                     </td>
-                    <td style={styles.td}>
+                    <td className="td">
                       <input
-                        style={styles.tableInput}
+                        className="table-input"
                         type="number"
                         value={m.inventory}
                         onChange={(e) => updateMachine(i, "inventory", e.target.value)}
                       />
                     </td>
-                    <td style={styles.td}>
+                    <td className="td">
                       <input
-                        style={styles.tableInput}
+                        className="table-input"
                         type="number"
                         value={m.operators}
                         onChange={(e) => updateMachine(i, "operators", e.target.value)}
@@ -880,14 +917,26 @@ function App() {
             </table>
           </div>
 
-          <button style={styles.buttonSecondary} onClick={addMachine}>
+          <button className="button-secondary" onClick={addMachine}>
             + Add Machine
           </button>
         </div>
+        <div className="excel-upload">
+          <label className="excel-upload-label">
+            Upload Excel File:
+          </label>
+          <input
+            type="file"
+            accept=".xlsx,.xls"
+            onChange={handleExcelUpload}
+            className="excel-upload-input"
+          />
+        </div>
+
 
         {/* Generate Button */}
-        <button style={styles.buttonPrimary} onClick={generateVSM}>
-          Generate Value Stream Map
+        <button className="button-primary" onClick={generateVSM}>
+          Generate Current Stream Map
         </button>
       </div>
 
@@ -896,260 +945,5 @@ function App() {
     </div>
   );
 }
-
-const styles = {
-  wrapper: {
-    minHeight: "100vh",
-    background: "linear-gradient(135deg,rgb(82, 83, 87) 0%,rgb(61, 60, 62) 100%)",
-    padding: "20px",
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-  },
-  header: {
-    textAlign: "center",
-    marginBottom: "30px",
-    color: "white",
-  },
-  title: {
-    fontSize: "42px",
-    fontWeight: "700",
-    margin: "0 0 10px 0",
-    textShadow: "0 2px 4px rgba(0,0,0,0.1)",
-  },
-  subtitle: {
-    fontSize: "18px",
-    opacity: "0.95",
-    margin: "0",
-    fontWeight: "400",
-  },
-  container: {
-    maxWidth: "1600px",
-    margin: "0 auto",
-    background: "white",
-    borderRadius: "20px",
-    padding: "40px",
-    boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
-  },
-  section: {
-    marginBottom: "40px",
-  },
-  sectionTitle: {
-    fontSize: "24px",
-    fontWeight: "600",
-    color: "#1a202c",
-    marginBottom: "20px",
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    borderBottom: "2px solid #e2e8f0",
-    paddingBottom: "12px",
-  },
-  icon: {
-    fontSize: "28px",
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-    gap: "16px",
-    marginBottom: "20px",
-  },
-  input: {
-    padding: "14px 16px",
-    border: "2px solid #e2e8f0",
-    borderRadius: "10px",
-    fontSize: "15px",
-    transition: "all 0.3s ease",
-    outline: "none",
-  },
-  inputSmall: {
-    padding: "12px 14px",
-    border: "2px solid #e2e8f0",
-    borderRadius: "8px",
-    fontSize: "14px",
-    transition: "all 0.3s ease",
-    outline: "none",
-    flex: "1",
-  },
-  breakRow: {
-    display: "flex",
-    gap: "12px",
-    alignItems: "center",
-    marginBottom: "12px",
-  },
-  shiftLabel: {
-    fontSize: "14px",
-    fontWeight: "600",
-    color: "#4a5568",
-    minWidth: "60px",
-  },
-  statCard: {
-    background: "linear-gradient(135deg,rgb(82, 83, 87) 0%,rgb(61, 60, 62) 100%)",
-    padding: "24px",
-    borderRadius: "12px",
-    color: "white",
-    textAlign: "center",
-  },
-  statLabel: {
-    fontSize: "14px",
-    opacity: "0.9",
-    marginBottom: "8px",
-    textTransform: "uppercase",
-    letterSpacing: "1px",
-  },
-  statValue: {
-    fontSize: "32px",
-    fontWeight: "700",
-  },
-  statsGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-    gap: "16px",
-    marginTop: "20px",
-  },
-  miniStatCard: {
-    background: "#f7fafc",
-    padding: "20px",
-    borderRadius: "10px",
-    border: "2px solid #e2e8f0",
-  },
-  miniStatLabel: {
-    fontSize: "13px",
-    color: "#718096",
-    marginBottom: "6px",
-    fontWeight: "500",
-  },
-  miniStatValue: {
-    fontSize: "24px",
-    fontWeight: "700",
-    color: "#2d3748",
-  },
-  tableWrapper: {
-    overflowX: "auto",
-    border: "2px solid #e2e8f0",
-    borderRadius: "12px",
-    marginBottom: "16px",
-  },
-  table: {
-    width: "100%",
-    minWidth: "1400px",
-    borderCollapse: "collapse",
-  },
-  th: {
-    background: "linear-gradient(135deg,rgb(82, 83, 87) 0%,rgb(61, 60, 62) 100%)",
-    color: "white",
-    padding: "14px 10px",
-    fontSize: "13px",
-    fontWeight: "600",
-    textAlign: "center",
-    whiteSpace: "nowrap",
-    borderRight: "1px solid rgba(255,255,255,0.1)",
-  },
-  tr: {
-    transition: "background 0.2s ease",
-  },
-  td: {
-    padding: "10px",
-    textAlign: "center",
-    borderBottom: "1px solid #e2e8f0",
-    borderRight: "1px solid #e2e8f0",
-  },
-  readOnly: {
-    background: "#f0f4f8",
-    fontWeight: "600",
-    color: "#2d3748",
-  },
-  tableInput: {
-    width: "100%",
-    padding: "8px",
-    border: "1px solid #cbd5e0",
-    borderRadius: "6px",
-    fontSize: "13px",
-    outline: "none",
-    transition: "border 0.2s ease",
-  },
-  buttonSecondary: {
-    background: "white",
-    color: "#667eea",
-    border: "2px solidrgb(127, 129, 136)",
-    borderRadius: "10px",
-    padding: "12px 24px",
-    fontSize: "14px",
-    fontWeight: "600",
-    cursor: "pointer",
-    transition: "all 0.3s ease",
-  },
-  buttonPrimary: {
-    width: "100%",
-    background: "linear-gradient(135deg,rgb(82, 83, 87) 0%,rgb(61, 60, 62) 100%)",
-    color: "white",
-    border: "none",
-    borderRadius: "12px",
-    padding: "18px",
-    fontSize: "18px",
-    fontWeight: "700",
-    cursor: "pointer",
-    transition: "all 0.3s ease",
-    boxShadow: "0 4px 15px rgba(102, 126, 234, 0.4)",
-  },
-  modalOverlay: {
-    position: "fixed",
-    top: "0",
-    left: "0",
-    right: "0",
-    bottom: "0",
-    background: "rgba(0, 0, 0, 0.75)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: "1000",
-    padding: "20px",
-  },
-  modalContent: {
-    background: "white",
-    borderRadius: "16px",
-    maxWidth: "95vw",
-    maxHeight: "90vh",
-    display: "flex",
-    flexDirection: "column",
-    boxShadow: "0 25px 50px rgba(0, 0, 0, 0.3)",
-  },
-  modalHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "20px 30px",
-    borderBottom: "2px solid #e2e8f0",
-  },
-  modalTitle: {
-    fontSize: "24px",
-    fontWeight: "700",
-    color: "#1a202c",
-    margin: "0",
-  },
-  closeButton: {
-    background: "transparent",
-    border: "none",
-    fontSize: "28px",
-    color: "#718096",
-    cursor: "pointer",
-    padding: "0",
-    width: "32px",
-    height: "32px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: "6px",
-    transition: "all 0.2s ease",
-  },
-  canvasWrapper: {
-    overflow: "auto",
-    padding: "30px",
-    maxHeight: "calc(90vh - 80px)",
-  },
-  svg: {
-    background: "#ffffff",
-    borderRadius: "8px",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
-  },
-};
 
 export default App;
