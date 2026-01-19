@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Process Sequence Builder - VSM</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1B2A4E",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101822",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .drag-handle { cursor: grab; }
+        .drag-handle:active { cursor: grabbing; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0d131b] dark:text-slate-200">
+<div class="relative flex min-h-screen w-full flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark px-10 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-primary"><div class="flex items-center gap-3">
+    <div class="size-10 bg-white rounded-lg flex items-center justify-center shadow-lg">
+      <img
+        src="D:/Faber Infinite/LFD Design Phase/logo.jpg"
+        alt="Company Logo"
+        class="w-6 h-6 object-contain"
+      />
+    </div>
+  </div>
+<h2 class="text-[#0d131b] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">VSM</h2>
+</div>
+<nav class="flex items-center gap-9">
+    <a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Dashboard</a>
+    <a class="text-primary text-sm font-bold" href="#">Projects</a>
+    <!-- <a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Templates</a>
+    <a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Reports</a> -->
+    </nav></div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<!-- <label class="flex flex-col min-w-40 !h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full relative">
+<div class="text-[#4c6c9a] absolute left-3 top-1/2 -translate-y-1/2">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 rounded-lg text-[#0d131b] dark:text-white border-none bg-slate-100 dark:bg-slate-800 focus:ring-2 focus:ring-primary pl-10 text-sm font-normal" placeholder="Search processes..." value=""/>
+</div>
+</label> -->
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-slate-200" data-alt="User avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD9VgUy0-9hhet-G5pt-5LE7ym_udv4S5tX-wWbZEI-hmG68eB9A8kCJjw-JxPyQAooz7ip3FKIVG5buKl9sxktlcNJYTMOBJS7L5dd9Fzizo3wrxLzrnetxRtvCj_lhI_m_ZasNZuuDytBaiTloMvQFFbAEZpgFzVdRHuqfGECqaVa6gnGg1YRbEDluc9lJRjs_4EF-_sOrnHY7xvolo7dMcJ4JATH8BibDDQ7lOcLHe6kd5Wx2H-YQCq5M3Mwa1OAfKXo-pM2Lbs");'></div>
+</div>
+</header>
+<div class="flex flex-1">
+<!-- Sidebar Navigation -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark hidden lg:flex flex-col p-4 gap-6">
+<div class="flex flex-col px-3">
+<h1 class="text-primary text-sm font-bold uppercase tracking-wider">Project ABC</h1>
+<p class="text-[#4c6c9a] dark:text-slate-400 text-xs font-medium">Manufacturing Line A</p>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined font-bold">account_tree</span>
+<p class="text-sm font-bold">Process Builder</p>
+<!-- </div>
+<div class="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group">
+<span class="material-symbols-outlined text-slate-500 group-hover:text-primary">inventory_2</span>
+<p class="text-[#4c6c9a] group-hover:text-[#0d131b] dark:group-hover:text-white text-sm font-medium">Inventory Map</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group">
+<span class="material-symbols-outlined text-slate-500 group-hover:text-primary">schedule</span>
+<p class="text-[#4c6c9a] group-hover:text-[#0d131b] dark:group-hover:text-white text-sm font-medium">Lead Time Analysis</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group">
+<span class="material-symbols-outlined text-slate-500 group-hover:text-primary">bar_chart</span>
+<p class="text-[#4c6c9a] group-hover:text-[#0d131b] dark:group-hover:text-white text-sm font-medium">Reports</p>
+</div> -->
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto px-8 py-6">
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-2 mb-4 text-sm font-medium text-[#4c6c9a]">
+<a class="hover:text-primary transition-colors" href="#">Projects</a>
+<span class="material-symbols-outlined text-base">chevron_right</span>
+<a class="hover:text-primary transition-colors" href="#">Line A</a>
+<span class="material-symbols-outlined text-base">chevron_right</span>
+<span class="text-[#0d131b] dark:text-white font-semibold">Process Sequence Builder</span>
+</nav>
+<!-- Page Header -->
+<div class="flex flex-wrap items-end justify-between gap-4 mb-8">
+<div class="flex flex-col gap-1">
+<h1 class="text-[#0d131b] dark:text-white text-4xl font-black tracking-tight">Process Sequence Builder</h1>
+<p class="text-[#4c6c9a] dark:text-slate-400 text-base max-w-xl">Configure manufacturing sequence, inventory buffers, and process cycles to auto-calculate your Value Stream metrics.</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 rounded-lg h-11 px-6 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-[#0d131b] dark:text-white text-sm font-bold hover:bg-slate-50 transition-all">
+<span class="material-symbols-outlined text-lg">upload_file</span>
+                            Import CSV
+                        </button>
+<button class="flex items-center gap-2 rounded-lg h-11 px-6 bg-primary text-white text-sm font-bold hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all">
+<span class="material-symbols-outlined text-lg">add</span>
+                            Add Process Step
+                        </button>
+</div>
+</div>
+<!-- Metrics Dashboard Mini-summary -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="flex flex-col gap-1 rounded-xl p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+<div class="flex items-center gap-2 text-[#4c6c9a] mb-1">
+<span class="material-symbols-outlined text-lg">timer</span>
+<p class="text-sm font-medium">Total Cycle Time</p>
+</div>
+<p class="text-[#0d131b] dark:text-white text-3xl font-bold tracking-tight">450 <span class="text-sm font-normal text-slate-400 uppercase">sec</span></p>
+</div>
+<div class="flex flex-col gap-1 rounded-xl p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+<div class="flex items-center gap-2 text-[#4c6c9a] mb-1">
+<span class="material-symbols-outlined text-lg">history</span>
+<p class="text-sm font-medium">Total Lead Time</p>
+</div>
+<p class="text-[#0d131b] dark:text-white text-3xl font-bold tracking-tight">12.4 <span class="text-sm font-normal text-slate-400 uppercase">hrs</span></p>
+</div>
+<div class="flex flex-col gap-1 rounded-xl p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+<div class="flex items-center gap-2 text-[#4c6c9a] mb-1">
+<span class="material-symbols-outlined text-lg"></span>
+<p class="text-sm font-medium"></p>
+</div>
+<p class="text-[#0d131b] dark:text-white text-3xl font-bold tracking-tight"> <span class="text-sm font-normal text-slate-400 uppercase"></span></p>
+</div>
+</div>
+<!-- Process Steps List -->
+<div class="flex flex-col gap-3 pb-12">
+<div class="grid grid-cols-12 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#4c6c9a]">
+<div class="col-span-1">#</div>
+<div class="col-span-4">Process Details</div>
+<div class="col-span-2 text-center">Cycle Time (s)</div>
+<div class="col-span-2 text-center">Inventory (WIP)</div>
+<div class="col-span-2 text-center">Operators</div>
+<div class="col-span-1 text-right">Actions</div>
+</div>
+<!-- Step 1 Card -->
+<div class="grid grid-cols-12 items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 hover:shadow-md transition-shadow group">
+<div class="col-span-1 flex items-center gap-3">
+<span class="material-symbols-outlined drag-handle text-slate-300 dark:text-slate-600">drag_indicator</span>
+<span class="flex items-center justify-center size-7 rounded-full bg-primary text-white text-xs font-bold">1</span>
+</div>
+<div class="col-span-4 pr-4">
+<input class="w-full bg-transparent border-none p-0 text-[#0d131b] dark:text-white font-semibold text-lg focus:ring-0" type="text" value="Laser Cutting Station"/>
+<p class="text-xs text-[#4c6c9a] uppercase font-bold mt-0.5">Primary Processing</p>
+</div>
+<div class="col-span-2 text-center">
+<div class="inline-flex flex-col">
+<input class="w-24 text-center bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg font-bold text-primary focus:ring-primary focus:border-primary" type="number" value="120"/>
+</div>
+</div>
+<div class="col-span-2 text-center">
+<div class="inline-flex flex-col">
+<input class="w-24 text-center bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg font-bold text-[#0d131b] dark:text-white focus:ring-primary focus:border-primary" type="number" value="500"/>
+</div>
+</div>
+<div class="col-span-2 text-center">
+<div class="inline-flex items-center justify-center gap-2">
+<button class="size-8 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100">-</button>
+<span class="w-8 text-center font-bold">2</span>
+<button class="size-8 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100">+</button>
+</div>
+</div>
+<div class="col-span-1 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">content_copy</span>
+</button>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Step 2 Card -->
+<div class="grid grid-cols-12 items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 hover:shadow-md transition-shadow group">
+<div class="col-span-1 flex items-center gap-3">
+<span class="material-symbols-outlined drag-handle text-slate-300 dark:text-slate-600">drag_indicator</span>
+<span class="flex items-center justify-center size-7 rounded-full bg-primary text-white text-xs font-bold">2</span>
+</div>
+<div class="col-span-4 pr-4">
+<input class="w-full bg-transparent border-none p-0 text-[#0d131b] dark:text-white font-semibold text-lg focus:ring-0" type="text" value="Precision Deburring"/>
+<p class="text-xs text-[#4c6c9a] uppercase font-bold mt-0.5">Finishing Step</p>
+</div>
+<div class="col-span-2 text-center">
+<div class="inline-flex flex-col">
+<input class="w-24 text-center bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg font-bold text-primary focus:ring-primary focus:border-primary" type="number" value="45"/>
+</div>
+</div>
+<div class="col-span-2 text-center">
+<div class="inline-flex flex-col">
+<input class="w-24 text-center bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg font-bold text-[#0d131b] dark:text-white focus:ring-primary focus:border-primary" type="number" value="250"/>
+</div>
+</div>
+<div class="col-span-2 text-center">
+<div class="inline-flex items-center justify-center gap-2">
+<button class="size-8 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100">-</button>
+<span class="w-8 text-center font-bold">1</span>
+<button class="size-8 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100">+</button>
+</div>
+</div>
+<div class="col-span-1 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">content_copy</span>
+</button>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Step 3 Card (Active State Simulation) -->
+<div class="grid grid-cols-12 items-center bg-white dark:bg-slate-800 border-2 border-primary rounded-xl p-5 shadow-lg group">
+<div class="col-span-1 flex items-center gap-3">
+<span class="material-symbols-outlined drag-handle text-primary">drag_indicator</span>
+<span class="flex items-center justify-center size-7 rounded-full bg-primary text-white text-xs font-bold">3</span>
+</div>
+<div class="col-span-4 pr-4">
+<input class="w-full bg-transparent border-none p-0 text-[#0d131b] dark:text-white font-semibold text-lg focus:ring-0" type="text" value="Quality Inspection"/>
+<p class="text-xs text-primary uppercase font-bold mt-0.5">Currently Editing</p>
+</div>
+<div class="col-span-2 text-center">
+<div class="inline-flex flex-col">
+<input class="w-24 text-center bg-primary/5 dark:bg-primary/20 border-primary rounded-lg font-bold text-primary focus:ring-primary focus:border-primary" type="number" value="180"/>
+</div>
+</div>
+<div class="col-span-2 text-center">
+<div class="inline-flex flex-col">
+<input class="w-24 text-center bg-primary/5 dark:bg-primary/20 border-primary rounded-lg font-bold text-[#0d131b] dark:text-white focus:ring-primary focus:border-primary" type="number" value="120"/>
+</div>
+</div>
+<div class="col-span-2 text-center">
+<div class="inline-flex items-center justify-center gap-2">
+<button class="size-8 rounded-lg border border-primary/30 text-primary hover:bg-primary/10">-</button>
+<span class="w-8 text-center font-bold">3</span>
+<button class="size-8 rounded-lg border border-primary/30 text-primary hover:bg-primary/10">+</button>
+</div>
+</div>
+<div class="col-span-1 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="text-primary">
+<span class="material-symbols-outlined">save</span>
+</button>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Step 4 Card -->
+<div class="grid grid-cols-12 items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 hover:shadow-md transition-shadow group">
+<div class="col-span-1 flex items-center gap-3">
+<span class="material-symbols-outlined drag-handle text-slate-300 dark:text-slate-600">drag_indicator</span>
+<span class="flex items-center justify-center size-7 rounded-full bg-primary text-white text-xs font-bold">4</span>
+</div>
+<div class="col-span-4 pr-4">
+<input class="w-full bg-transparent border-none p-0 text-[#0d131b] dark:text-white font-semibold text-lg focus:ring-0" type="text" value="Final Packaging"/>
+<p class="text-xs text-[#4c6c9a] uppercase font-bold mt-0.5">Logistics Preparation</p>
+</div>
+<div class="col-span-2 text-center">
+<div class="inline-flex flex-col">
+<input class="w-24 text-center bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg font-bold text-primary focus:ring-primary focus:border-primary" type="number" value="105"/>
+</div>
+</div>
+<div class="col-span-2 text-center">
+<div class="inline-flex flex-col">
+<input class="w-24 text-center bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg font-bold text-[#0d131b] dark:text-white focus:ring-primary focus:border-primary" type="number" value="380"/>
+</div>
+</div>
+<div class="col-span-2 text-center">
+<div class="inline-flex items-center justify-center gap-2">
+<button class="size-8 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100">-</button>
+<span class="w-8 text-center font-bold">2</span>
+<button class="size-8 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100">+</button>
+</div>
+</div>
+<div class="col-span-1 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">content_copy</span>
+</button>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Add Step Button (Inline Placeholder) -->
+<button class="w-full border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-8 flex flex-col items-center justify-center text-slate-400 hover:border-primary hover:text-primary transition-all group">
+<span class="material-symbols-outlined text-4xl mb-2 group-hover:scale-110 transition-transform">add_circle</span>
+<span class="font-bold text-lg">Add New Step</span>
+<span class="text-sm">Sequence step #5</span>
+</button>
+</div>
+</main>
+</div>
+<!-- Sticky Footer Calculation Summary -->
+<footer class="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-10 py-4 flex items-center justify-between z-50">
+<div class="flex items-center gap-8">
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-black text-slate-400 tracking-widest"></span>
+<div class="flex items-center gap-2 text-green-500">
+<span class="material-symbols-outlined text-sm"></span>
+<span class="text-sm font-bold"></span>
+</div>
+</div>
+<div class="h-8 w-px bg-slate-200 dark:bg-slate-700"></div>
+<div class="flex gap-10">
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-black text-slate-400 tracking-widest"></span>
+<span class="text-lg font-bold text-primary"></span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-black text-slate-400 tracking-widest"></span>
+<span class="text-lg font-bold"> <span class="text-xs text-slate-500"></span></span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="px-6 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">Discard Changes</button>
+<button class="px-8 py-2.5 bg-primary text-white rounded-lg font-bold shadow-lg shadow-primary/25 hover:translate-y-[-1px] transition-all">Generate Current State</button>
+</div>
+</footer>
+</div>
+</body></html>

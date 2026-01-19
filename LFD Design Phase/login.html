@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Login - LFD Automation</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1B2A4E",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101822",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0d131b] dark:text-slate-50 antialiased overflow-hidden">
+<div class="flex h-screen w-full">
+<!-- Left Section: Visual/Hero -->
+<div class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-primary">
+<!-- Background Image with Overlay -->
+<div class="absolute inset-0 z-0 opacity-40 bg-cover bg-center" data-alt="Modern high-tech industrial manufacturing facility with robotic arms" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBmqWrB3HcPHgmZsoTPx4YK-6_e21mTDH0X9C5yhZoHaoFj6pLB2ewU6P6_68vwcVpzzNFkJCbAQHAgCJTG6Ed-i6X44slp9GG-Dh0hXCV_qUhu09c2EfJ6ugp4ZCokYjixxzwO5vckHiKuFnxzdPL4cdYXSs1ZcT_gwsshy1tfSXtxcLKhVGLmKF0U7VoijbyMqbO5XqYFRbHUHlEwvF2DEVmJB7RpQWMxgQAcw3PAcoUPZi6_6VDYFfmAI-dHzV3WxXq7XhvjN_E');">
+</div>
+<!-- Subtle Gradient Overlay for Branding -->
+<div class="absolute inset-0 z-10 bg-gradient-to-tr from-primary/90 to-primary/40"></div>
+<!-- Content on Hero Side -->
+<div class="relative z-20 flex flex-col justify-between p-16 w-full h-full">
+<div class="flex items-center gap-3">
+    <div class="flex items-center gap-3">
+        <div class="size-10 bg-white rounded-lg flex items-center justify-center shadow-lg">
+          <img
+            src="D:/Faber Infinite/LFD Design Phase/logo.jpg"
+            alt="Company Logo"
+            class="w-6 h-6 object-contain"
+          />
+        </div>
+      </div>
+<span class="text-white text-2xl font-bold tracking-tight">Lean Facility Design</span>
+</div>
+<div class="max-w-md">
+<h1 class="text-white text-5xl font-black leading-tight tracking-tight mb-6">
+                        Optimize Your Value Stream
+                    </h1>
+<p class="text-white/80 text-lg leading-relaxed">
+                        Revolutionizing manufacturing efficiency with automated VSM mapping and real-time data analysis. Join thousands of factories scaling their operations today.
+                    </p>
+</div>
+<div class="flex gap-8 items-center text-white/60 text-sm">
+<div class="flex flex-col">
+<span class="text-white font-bold text-xl">99.9%</span>
+<span>Uptime Guaranteed</span>
+</div>
+<div class="w-px h-10 bg-white/20"></div>
+<div class="flex flex-col">
+<span class="text-white font-bold text-xl">45%</span>
+<span>Waste Reduction</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Section: Form -->
+<div class="w-full lg:w-1/2 flex flex-col justify-center items-center bg-white dark:bg-background-dark px-8 md:px-16 overflow-y-auto">
+<div class="w-full max-w-[440px]">
+<!-- Logo for Mobile -->
+<div class="lg:hidden flex items-center gap-3 mb-10">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center">
+<svg class="w-5 h-5 text-white" fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M42.1739 20.1739L27.8261 5.82609C29.1366 7.13663 28.3989 10.1876 26.2002 13.7654C24.8538 15.9564 22.9595 18.3449 20.6522 20.6522C18.3449 22.9595 15.9564 24.8538 13.7654 26.2002C10.1876 28.3989 7.13663 29.1366 5.82609 27.8261L20.1739 42.1739C21.4845 43.4845 24.5355 42.7467 28.1133 40.548C30.3042 39.2016 32.6927 37.3073 35 35C37.3073 32.6927 39.2016 30.3042 40.548 28.1133C42.7467 24.5355 43.4845 21.4845 42.1739 20.1739Z" fill="currentColor"></path>
+</svg>
+</div>
+<span class="text-[#0d131b] dark:text-white text-xl font-bold tracking-tight">LFD Automation</span>
+</div>
+<div class="mb-8">
+<h2 class="text-[#0d131b] dark:text-white text-3xl font-bold tracking-tight mb-2">Welcome Back</h2>
+<p class="text-[#4c6c9a] dark:text-slate-400">Please enter your details to access your dashboard.</p>
+</div>
+<!-- Toggle Buttons -->
+<div class="flex mb-8">
+<div class="flex h-12 w-full items-center justify-center rounded-xl bg-[#e7ecf3] dark:bg-slate-800 p-1.5">
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-slate-700 has-[:checked]:shadow-[0_2px_10px_rgba(0,0,0,0.06)] has-[:checked]:text-[#0d131b] dark:has-[:checked]:text-white text-[#4c6c9a] dark:text-slate-400 text-sm font-semibold leading-normal transition-all">
+<span class="truncate">Sign In</span>
+<input checked="" class="invisible w-0" id="toggleLogin" name="auth-mode" type="radio" value="login"/>
+<!-- </label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-slate-700 has-[:checked]:shadow-[0_2px_10px_rgba(0,0,0,0.06)] has-[:checked]:text-[#0d131b] dark:has-[:checked]:text-white text-[#4c6c9a] dark:text-slate-400 text-sm font-semibold leading-normal transition-all">
+<span class="truncate">Sign Up</span>
+<input class="invisible w-0" id="toggleSignup" name="auth-mode" type="radio" value="signup"/>
+</label> -->
+</div>
+</div>
+<!-- Authentication Form -->
+<form class="space-y-5">
+<!-- Company Name Field (Conditional) -->
+<div class="hidden" id="companyField">
+<label class="flex flex-col w-full">
+<span class="text-[#0d131b] dark:text-slate-200 text-sm font-semibold pb-2">Company Name</span>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#4c6c9a] text-xl">factory</span>
+<input class="flex w-full min-w-0 resize-none overflow-hidden rounded-xl text-[#0d131b] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#cfd9e7] dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:border-primary h-14 placeholder:text-[#4c6c9a] dark:placeholder:text-slate-500 pl-12 pr-4 text-base font-normal transition-all" placeholder="Industrial Solutions Inc." type="text"/>
+</div>
+</label>
+</div>
+<!-- Email Field -->
+<label class="flex flex-col w-full">
+<span class="text-[#0d131b] dark:text-slate-200 text-sm font-semibold pb-2">Email Address</span>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#4c6c9a] text-xl">mail</span>
+<input class="flex w-full min-w-0 resize-none overflow-hidden rounded-xl text-[#0d131b] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#cfd9e7] dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:border-primary h-14 placeholder:text-[#4c6c9a] dark:placeholder:text-slate-500 pl-12 pr-4 text-base font-normal transition-all" placeholder="name@faberinfinite.com" type="email"/>
+</div>
+</label>
+<!-- Password Field -->
+<label class="flex flex-col w-full">
+<span class="text-[#0d131b] dark:text-slate-200 text-sm font-semibold pb-2">Password</span>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#4c6c9a] text-xl">lock</span>
+<input class="flex w-full min-w-0 resize-none overflow-hidden rounded-xl text-[#0d131b] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#cfd9e7] dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:border-primary h-14 placeholder:text-[#4c6c9a] dark:placeholder:text-slate-500 pl-12 pr-12 text-base font-normal transition-all" placeholder="••••••••" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-[#4c6c9a] hover:text-primary" type="button">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</button>
+</div>
+</label>
+<div class="flex items-center justify-between py-1" id="forgotPasswordContainer">
+<div class="flex items-center gap-2">
+<input class="rounded border-[#cfd9e7] text-primary focus:ring-primary h-4 w-4" id="remember" type="checkbox"/>
+<label class="text-sm text-[#4c6c9a] cursor-pointer" for="remember">Remember me</label>
+</div>
+<a class="text-sm font-semibold text-primary hover:underline" href="#">Forgot password?</a>
+</div>
+<!-- Submit Button -->
+<button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-6 bg-primary text-white text-base font-bold leading-normal tracking-wide shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-[0.98]" id="mainButton">
+<span id="buttonText">Sign In</span>
+</button>
+</form>
+<!-- Footer Links -->
+<div class="mt-12 text-center">
+<p class="text-sm text-[#4c6c9a] dark:text-slate-500">
+                        By signing in, you agree to our 
+                        <a class="text-[#0d131b] dark:text-slate-300 font-semibold hover:underline" href="#">Terms of Service</a> 
+                        and 
+                        <a class="text-[#0d131b] dark:text-slate-300 font-semibold hover:underline" href="#">Privacy Policy</a>.
+                    </p>
+</div>
+</div>
+</div>
+</div>
+<!-- State Toggle Logic Emulator -->
+<style>
+        /* Hidden visual toggle without JS for the demo's sake */
+        #toggleSignup:checked ~ * #companyField { display: block !important; }
+        
+        /* Note: In a real app, JS would handle the state change for smooth transitions and class updates */
+    </style>
+<!-- Inline Simulation Script (Normally we avoid JS but this is for the requested UI toggle behavior) -->
+<script>
+        const loginToggle = document.getElementById('toggleLogin');
+        const signupToggle = document.getElementById('toggleSignup');
+        const companyField = document.getElementById('companyField');
+        const mainButton = document.getElementById('mainButton');
+        const buttonText = document.getElementById('buttonText');
+        const title = document.querySelector('h2');
+        const subTitle = document.querySelector('p.text-[#4c6c9a]');
+        const forgotPass = document.getElementById('forgotPasswordContainer');
+
+        signupToggle.addEventListener('change', () => {
+            if(signupToggle.checked) {
+                companyField.classList.remove('hidden');
+                buttonText.innerText = 'Create Account';
+                title.innerText = 'Join VSM Automation';
+                subTitle.innerText = 'Start optimizing your manufacturing efficiency.';
+                forgotPass.classList.add('hidden');
+            }
+        });
+
+        loginToggle.addEventListener('change', () => {
+            if(loginToggle.checked) {
+                companyField.classList.add('hidden');
+                buttonText.innerText = 'Sign In';
+                title.innerText = 'Welcome Back';
+                subTitle.innerText = 'Please enter your details to access your dashboard.';
+                forgotPass.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById("mainButton").addEventListener("click", function () {
+            window.location.href = "C:/Users/rohit/Downloads/dashboard.html";
+        });
+    </script>
+</body></html>

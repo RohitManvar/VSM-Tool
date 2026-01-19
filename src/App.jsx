@@ -282,7 +282,7 @@ function CSMCanvas({ machines, onClose }) {
                     Rework: {m.rework || "-"} %
                   </text>
 
-                  {/* Inventory Triangle */}
+                  {/* Inventory Triangle
                   {i < machines.length - 1 && (
                     <>
                       <polygon
@@ -302,7 +302,7 @@ function CSMCanvas({ machines, onClose }) {
                         {machines[i + 1].inventory || "0"} Days
                       </text>
                     </>
-                  )}
+                  )} */}
 
                   {/* Flow Arrow */}
                   {i < machines.length - 1 && (
@@ -320,7 +320,7 @@ function CSMCanvas({ machines, onClose }) {
               );
             })}
 
-            {/* LEAD TIME LADDER */}
+            LEAD TIME LADDER
             <g>
               {/* Timeline Base */}
               <line
