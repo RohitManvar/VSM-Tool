@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Current Stream Mapping (VSM)</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles to complement Tailwind */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .shadow-card {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .shadow-deep {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* Table styling */
+        .table-container {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .table-input {
+            width: 100%;
+            padding: 4px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            background-color: white;
+        }
+        
+        .table-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+        
+        /* Modal styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+            overflow: auto;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 12px;
+            max-width: 95%;
+            max-height: 90vh;
+            overflow: auto;
+            position: relative;
+        }
+        
+        /* Canvas styling */
+        .canvas-container {
+            overflow: auto;
+            max-height: calc(90vh - 120px);
+        }
+        
+        .svg-canvas {
+            background-color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* Animation for modal */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-overlay {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .table-container {
+                font-size: 12px;
+            }
+            
+            .table-input {
+                padding: 2px 4px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="app-wrapper">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-6">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div>
+                        <h1 class="text-3xl font-bold mb-2">Current Stream Mapping</h1>
+                        <p class="text-blue-100">Visualize and analyze your production workflow</p>
+                    </div>
+                    <div class="mt-4 md:mt-0">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-industry text-2xl"></i>
+                            <span class="text-lg">Value Stream Mapping Tool</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Container -->
+        <div class="container mx-auto px-4 py-8">
+            <!-- Industry Information Section -->
+            <div class="bg-white rounded-xl shadow-card p-6 mb-8">
+                <div class="flex items-center mb-6">
+                    <div class="bg-blue-100 p-3 rounded-lg mr-4">
+                        <i class="fas fa-info-circle text-blue-600 text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800">Industry Information</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Industry Name</label>
+                        <input type="text" id="industryName" placeholder="Enter industry name" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Production Line</label>
+                        <input type="text" id="productionLine" placeholder="Enter production line name" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Working Days/Month</label>
+                        <input type="number" id="workingDays" placeholder="e.g., 22" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">Monthly Production Rate</label>
+                        <input type="number" id="monthlyRate" placeholder="e.g., 10000" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                </div>
+                
+                <div id="dailyProductionCard" class="hidden">
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-bullseye text-blue-500 text-xl mr-3"></i>
+                            <div>
+                                <p class="text-sm text-blue-800 font-medium">Daily Production Target</p>
+                                <p id="dailyProductionValue" class="text-xl font-bold text-blue-900"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shift Breaks Section -->
+            <div class="bg-white rounded-xl shadow-card p-6 mb-8">
+                <div class="flex items-center mb-6">
+                    <div class="bg-yellow-100 p-3 rounded-lg mr-4">
+                        <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800">Shift Breaks</h2>
+                </div>
+                
+                <div id="breaksContainer">
+                    <!-- Breaks will be added here dynamically -->
+                </div>
+                
+                <button id="addShiftBtn" class="mt-4 px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition flex items-center">
+                    <i class="fas fa-plus mr-2"></i> Add Shift
+                </button>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                    <div class="bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 rounded-xl p-5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-yellow-800">Total Break Time</p>
+                                <p id="totalBreakTime" class="text-2xl font-bold text-yellow-900">0 min</p>
+                            </div>
+                            <i class="fas fa-hourglass-half text-yellow-600 text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl p-5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-green-800">Available Production Time</p>
+                                <p id="totalAvailableTime" class="text-2xl font-bold text-green-900">86,400 sec</p>
+                            </div>
+                            <i class="fas fa-cogs text-green-600 text-3xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Machine Configuration Section -->
+            <div class="bg-white rounded-xl shadow-card p-6 mb-8">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center">
+                        <div class="bg-red-100 p-3 rounded-lg mr-4">
+                            <i class="fas fa-cogs text-red-600 text-xl"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-800">Machine Configuration</h2>
+                    </div>
+                    <div class="flex space-x-4">
+                        <button id="addMachineBtn" class="px-5 py-2.5 bg-red-100 text-red-700 font-medium rounded-lg hover:bg-red-200 transition flex items-center">
+                            <i class="fas fa-plus mr-2"></i> Add Machine
+                        </button>
+                        <div class="relative">
+                            <label class="block bg-blue-100 text-blue-700 font-medium rounded-lg px-5 py-2.5 cursor-pointer hover:bg-blue-200 transition">
+                                <i class="fas fa-file-excel mr-2"></i> Upload Excel
+                                <input type="file" id="excelUpload" accept=".xlsx,.xls" class="hidden">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">#</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Machine Name</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Avail. Hours/Day</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Total Time (sec)</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">3 Mo. Time (sec)</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Rework %</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Rejection %</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Breakdown %</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Avg Change (min)</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Changes/Mo</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Total Change (min)</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Cycle Time (sec)</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Inventory (days)</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Operators</th>
+                            </tr>
+                        </thead>
+                        <tbody id="machinesTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Machine rows will be added here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Generate Button -->
+            <div class="text-center mb-12">
+                <button id="generateVSM" class="px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold text-lg rounded-xl shadow-deep hover:from-blue-700 hover:to-indigo-800 transition transform hover:-translate-y-1">
+                    <i class="fas fa-stream mr-3"></i> Generate Current Stream Map
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VSM Canvas Modal -->
+    <div id="vsmModal" class="modal-overlay hidden">
+        <div class="modal-content w-full max-w-7xl">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 rounded-t-xl flex justify-between items-center">
+                <h2 class="text-2xl font-bold">Current Stream Map</h2>
+                <button id="closeModal" class="text-white text-2xl hover:text-gray-200 transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="p-4">
+                <div class="canvas-container">
+                    <svg id="vsmCanvas" class="svg-canvas"></svg>
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 p-4 border-t border-gray-200 flex justify-end rounded-b-xl">
+                <button id="exportBtn" class="px-6 py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition flex items-center mr-4">
+                    <i class="fas fa-download mr-2"></i> Export as PNG
+                </button>
+                <button id="closeModal2" class="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Application state
+        const state = {
+            workingDays: "",
+            monthlyRate: "",
+            industryName: "",
+            productionLine: "",
+            breaks: [{ lunch: "", tea: "" }],
+            machines: [createMachine()],
+            showVSM: false
+        };
+
+        // DOM Elements
+        const elements = {
+            industryName: document.getElementById('industryName'),
+            productionLine: document.getElementById('productionLine'),
+            workingDays: document.getElementById('workingDays'),
+            monthlyRate: document.getElementById('monthlyRate'),
+            dailyProductionCard: document.getElementById('dailyProductionCard'),
+            dailyProductionValue: document.getElementById('dailyProductionValue'),
+            breaksContainer: document.getElementById('breaksContainer'),
+            addShiftBtn: document.getElementById('addShiftBtn'),
+            totalBreakTime: document.getElementById('totalBreakTime'),
+            totalAvailableTime: document.getElementById('totalAvailableTime'),
+            machinesTableBody: document.getElementById('machinesTableBody'),
+            addMachineBtn: document.getElementById('addMachineBtn'),
+            excelUpload: document.getElementById('excelUpload'),
+            generateVSM: document.getElementById('generateVSM'),
+            vsmModal: document.getElementById('vsmModal'),
+            closeModal: document.getElementById('closeModal'),
+            closeModal2: document.getElementById('closeModal2'),
+            vsmCanvas: document.getElementById('vsmCanvas'),
+            exportBtn: document.getElementById('exportBtn')
+        };
+
+        // Initialize the application
+        function init() {
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Render initial breaks
+            renderBreaks();
+            
+            // Render initial machines table
+            renderMachinesTable();
+            
+            // Calculate initial totals
+            updateCalculations();
+        }
+
+        // Set up all event listeners
+        function setupEventListeners() {
+            // Industry info inputs
+            [elements.workingDays, elements.monthlyRate].forEach(input => {
+                input.addEventListener('input', updateDailyProduction);
+            });
+            
+            // Add shift button
+            elements.addShiftBtn.addEventListener('click', addShift);
+            
+            // Add machine button
+            elements.addMachineBtn.addEventListener('click', addMachine);
+            
+            // Excel upload
+            elements.excelUpload.addEventListener('change', handleExcelUpload);
+            
+            // Generate VSM button
+            elements.generateVSM.addEventListener('click', generateVSM);
+            
+            // Close modal buttons
+            elements.closeModal.addEventListener('click', () => elements.vsmModal.classList.add('hidden'));
+            elements.closeModal2.addEventListener('click', () => elements.vsmModal.classList.add('hidden'));
+            
+            // Export button
+            elements.exportBtn.addEventListener('click', exportAsPNG);
+            
+            // Close modal when clicking outside
+            elements.vsmModal.addEventListener('click', (e) => {
+                if (e.target === elements.vsmModal) {
+                    elements.vsmModal.classList.add('hidden');
+                }
+            });
+        }
+
+        // Create a new machine object
+        function createMachine() {
+            return {
+                name: "",
+                hours: "",
+                seconds: 0,
+                threeMonths: 0,
+                rework: "",
+                rejection: "",
+                breakdown: "",
+                avgChange: "",
+                changeCount: "",
+                totalChange: 0,
+                cycleTime: "",
+                inventory: "",
+                operators: "",
+            };
+        }
+
+        // Update daily production calculation
+        function updateDailyProduction() {
+            state.workingDays = elements.workingDays.value;
+            state.monthlyRate = elements.monthlyRate.value;
+            
+            if (state.workingDays && state.monthlyRate) {
+                const perDayProduction = (state.monthlyRate / state.workingDays).toFixed(2);
+                elements.dailyProductionValue.textContent = `${perDayProduction} units`;
+                elements.dailyProductionCard.classList.remove('hidden');
+            } else {
+                elements.dailyProductionCard.classList.add('hidden');
+            }
+            
+            updateCalculations();
+        }
+
+        // Render breaks section
+        function renderBreaks() {
+            elements.breaksContainer.innerHTML = '';
+            
+            state.breaks.forEach((b, i) => {
+                const breakElement = document.createElement('div');
+                breakElement.className = 'bg-gray-50 p-4 rounded-lg mb-4';
+                breakElement.innerHTML = `
+                    <div class="flex flex-col md:flex-row md:items-center justify-between">
+                        <div class="flex items-center mb-4 md:mb-0">
+                            <div class="bg-yellow-500 text-white p-2 rounded-lg mr-4">
+                                <i class="fas fa-user-clock"></i>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-800">Shift ${i + 1}</h3>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-medium mb-2">Lunch/Dinner (min)</label>
+                                <input type="number" data-index="${i}" data-field="lunch" 
+                                       value="${b.lunch}" placeholder="e.g., 30"
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-medium mb-2">Tea Breaks (min)</label>
+                                <input type="number" data-index="${i}" data-field="tea" 
+                                       value="${b.tea}" placeholder="e.g., 15"
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition">
+                            </div>
+                        </div>
+                    </div>
+                `;
+                elements.breaksContainer.appendChild(breakElement);
+            });
+            
+            // Add event listeners to break inputs
+            document.querySelectorAll('#breaksContainer input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const index = parseInt(e.target.dataset.index);
+                    const field = e.target.dataset.field;
+                    state.breaks[index][field] = e.target.value;
+                    updateCalculations();
+                });
+            });
+        }
+
+        // Add a new shift
+        function addShift() {
+            state.breaks.push({ lunch: "", tea: "" });
+            renderBreaks();
+            updateCalculations();
+        }
+
+        // Update all calculations
+        function updateCalculations() {
+            // Calculate total break time
+            const totalBreakTime = state.breaks.reduce(
+                (sum, b) => sum + Number(b.lunch || 0) + Number(b.tea || 0),
+                0
+            );
+            
+            // Calculate total available time (24 hours minus breaks, in seconds)
+            const totalAvailableTime = 24 * 60 * 60 - totalBreakTime * 60;
+            
+            // Update UI
+            elements.totalBreakTime.textContent = `${totalBreakTime} min`;
+            elements.totalAvailableTime.textContent = totalAvailableTime.toLocaleString() + ' sec';
+            
+            // Update machine calculations if working days changed
+            if (state.workingDays) {
+                state.machines.forEach((machine, index) => {
+                    if (machine.hours) {
+                        const sec = machine.hours * 3600;
+                        machine.seconds = sec;
+                        machine.threeMonths = sec * state.workingDays * 3;
+                        renderMachinesTable();
+                    }
+                });
+            }
+        }
+
+        // Render machines table
+        function renderMachinesTable() {
+            elements.machinesTableBody.innerHTML = '';
+            
+            state.machines.forEach((machine, index) => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-4 py-3 text-center text-gray-700 font-medium">${index + 1}</td>
+                    <td class="px-4 py-3">
+                        <input type="text" data-index="${index}" data-field="name" value="${machine.name}" 
+                               placeholder="Machine ${index + 1}" class="table-input">
+                    </td>
+                    <td class="px-4 py-3">
+                        <input type="number" data-index="${index}" data-field="hours" value="${machine.hours}" 
+                               placeholder="Hours" class="table-input">
+                    </td>
+                    <td class="px-4 py-3 text-center text-gray-600 bg-gray-50">${machine.seconds}</td>
+                    <td class="px-4 py-3 text-center text-gray-600 bg-gray-50">${machine.threeMonths}</td>
+                    <td class="px-4 py-3">
+                        <input type="number" data-index="${index}" data-field="rework" value="${machine.rework}" 
+                               placeholder="%" class="table-input">
+                    </td>
+                    <td class="px-4 py-3">
+                        <input type="number" data-index="${index}" data-field="rejection" value="${machine.rejection}" 
+                               placeholder="%" class="table-input">
+                    </td>
+                    <td class="px-4 py-3">
+                        <input type="number" data-index="${index}" data-field="breakdown" value="${machine.breakdown}" 
+                               placeholder="%" class="table-input">
+                    </td>
+                    <td class="px-4 py-3">
+                        <input type="number" data-index="${index}" data-field="avgChange" value="${machine.avgChange}" 
+                               placeholder="min" class="table-input">
+                    </td>
+                    <td class="px-4 py-3">
+                        <input type="number" data-index="${index}" data-field="changeCount" value="${machine.changeCount}" 
+                               placeholder="count" class="table-input">
+                    </td>
+                    <td class="px-4 py-3 text-center text-gray-600 bg-gray-50">${machine.totalChange}</td>
+                    <td class="px-4 py-3">
+                        <input type="number" data-index="${index}" data-field="cycleTime" value="${machine.cycleTime}" 
+                               placeholder="sec" class="table-input">
+                    </td>
+                    <td class="px-4 py-3">
+                        <input type="number" data-index="${index}" data-field="inventory" value="${machine.inventory}" 
+                               placeholder="days" class="table-input">
+                    </td>
+                    <td class="px-4 py-3">
+                        <input type="number" data-index="${index}" data-field="operators" value="${machine.operators}" 
+                               placeholder="No." class="table-input">
+                    </td>
+                `;
+                elements.machinesTableBody.appendChild(row);
+            });
+            
+            // Add event listeners to machine inputs
+            document.querySelectorAll('#machinesTableBody input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const index = parseInt(e.target.dataset.index);
+                    const field = e.target.dataset.field;
+                    const value = e.target.value;
+                    
+                    updateMachine(index, field, value);
+                });
+            });
+        }
+
+        // Update machine data
+        function updateMachine(index, field, value) {
+            state.machines[index][field] = value;
+            
+            // Recalculate derived fields
+            if (field === 'hours') {
+                const sec = value * 3600;
+                state.machines[index].seconds = sec;
+                state.machines[index].threeMonths = sec * (state.workingDays || 0) * 3;
+            }
+            
+            if (field === 'avgChange' || field === 'changeCount') {
+                state.machines[index].totalChange = 
+                    (Number(state.machines[index].avgChange) || 0) * 
+                    (Number(state.machines[index].changeCount) || 0);
+            }
+            
+            renderMachinesTable();
+        }
+
+        // Add a new machine
+        function addMachine() {
+            state.machines.push(createMachine());
+            renderMachinesTable();
+        }
+
+        // Handle Excel file upload
+        function handleExcelUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            
+            reader.onload = (evt) => {
+                const data = new Uint8Array(evt.target.result);
+                const workbook = XLSX.read(data, { type: "array" });
+                
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(sheet);
+                
+                const parsedMachines = rows.map((row) => ({
+                    name: row["Machine Name"] || "",
+                    hours: Number(row["No of Available Hours daily"] || 0),
+                    seconds: Number(row["Total Time (sec)"] || 0),
+                    threeMonths: Number(row["Available time for last 3 months"] || 0),
+                    rework: Number(row["Rework % last 3 months"] || ""),
+                    rejection: Number(row["Rejection % last 3 months"] || ""),
+                    breakdown: Number(row["last 3 months brkdown %"] || ""),
+                    avgChange: Number(row["Avg Changeover Time (min)"] || 0),
+                    changeCount: Number(row["No of Changeover per month"] || 0),
+                    totalChange: Number(row["Total Changeover"] || 0),
+                    cycleTime: Number(row["Cycle Time (sec)"] || 0),
+                    inventory: Number(row["Inventory before operations (days)"] || 0),
+                    operators: Number(row["No. of Operators (No.)"] || 1),
+                }));
+                
+                state.machines = parsedMachines;
+                renderMachinesTable();
+                
+                // Show success message
+                showNotification('Excel data loaded successfully!', 'success');
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Generate VSM visualization
+        function generateVSM() {
+            // Update state from inputs
+            state.industryName = elements.industryName.value;
+            state.productionLine = elements.productionLine.value;
+            
+            // Generate the VSM canvas
+            renderVSMModal();
+            
+            // Show the modal
+            elements.vsmModal.classList.remove('hidden');
+            
+            // Show success message
+            showNotification('Current Stream Map generated successfully!', 'success');
+        }
+
+        // Render VSM modal with canvas
+        function renderVSMModal() {
+            const startX = 220;
+            const gap = 240;
+            const yProcess = 280;
+            const yInventory = 430;
+            const yInfo = 100;
+            
+            const svgWidth = Math.max(1200, startX + state.machines.length * gap + 500);
+            const svgHeight = 800;
+            
+            // Clear canvas
+            elements.vsmCanvas.innerHTML = '';
+            
+            // Set SVG dimensions
+            elements.vsmCanvas.setAttribute('width', svgWidth);
+            elements.vsmCanvas.setAttribute('height', svgHeight);
+            
+            // Create arrow markers
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            
+            const arrowMarker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+            arrowMarker.setAttribute('id', 'arrow');
+            arrowMarker.setAttribute('markerWidth', '10');
+            arrowMarker.setAttribute('markerHeight', '10');
+            arrowMarker.setAttribute('refX', '6');
+            arrowMarker.setAttribute('refY', '3');
+            arrowMarker.setAttribute('orient', 'auto');
+            
+            const arrowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            arrowPath.setAttribute('d', 'M0,0 L6,3 L0,6 Z');
+            arrowPath.setAttribute('fill', '#667eea');
+            
+            arrowMarker.appendChild(arrowPath);
+            defs.appendChild(arrowMarker);
+            
+            const infoArrowMarker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+            infoArrowMarker.setAttribute('id', 'infoArrow');
+            infoArrowMarker.setAttribute('markerWidth', '8');
+            infoArrowMarker.setAttribute('markerHeight', '8');
+            infoArrowMarker.setAttribute('refX', '5');
+            infoArrowMarker.setAttribute('refY', '3');
+            infoArrowMarker.setAttribute('orient', 'auto');
+            
+            const infoArrowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            infoArrowPath.setAttribute('d', 'M0,0 L5,3 L0,6 Z');
+            infoArrowPath.setAttribute('fill', '#9333ea');
+            
+            infoArrowMarker.appendChild(infoArrowPath);
+            defs.appendChild(infoArrowMarker);
+            
+            elements.vsmCanvas.appendChild(defs);
+            
+            // SUPPLIER BOX
+            const supplierGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            
+            const supplierRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            supplierRect.setAttribute('x', '20');
+            supplierRect.setAttribute('y', yProcess);
+            supplierRect.setAttribute('width', '160');
+            supplierRect.setAttribute('height', '100');
+            supplierRect.setAttribute('fill', '#f0f9ff');
+            supplierRect.setAttribute('stroke', '#0284c7');
+            supplierRect.setAttribute('stroke-width', '2');
+            supplierRect.setAttribute('rx', '8');
+            supplierRect.setAttribute('ry', '8');
+            supplierRect.setAttribute('filter', 'drop-shadow(2px 4px 6px rgba(2, 132, 199, 0.2))');
+            
+            const supplierText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            supplierText.setAttribute('x', '100');
+            supplierText.setAttribute('y', yProcess + 25);
+            supplierText.setAttribute('text-anchor', 'middle');
+            supplierText.setAttribute('font-weight', 'bold');
+            supplierText.setAttribute('font-size', '14');
+            supplierText.setAttribute('fill', '#0284c7');
+            supplierText.textContent = 'SUPPLIER';
+            
+            const supplierText1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            supplierText1.setAttribute('x', '35');
+            supplierText1.setAttribute('y', yProcess + 50);
+            supplierText1.setAttribute('font-size', '11');
+            supplierText1.setAttribute('fill', '#2d3748');
+            supplierText1.textContent = 'Raw Materials';
+            
+            const supplierText2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            supplierText2.setAttribute('x', '35');
+            supplierText2.setAttribute('y', yProcess + 68);
+            supplierText2.setAttribute('font-size', '11');
+            supplierText2.setAttribute('fill', '#2d3748');
+            supplierText2.textContent = 'Lead Time: Weekly';
+            
+            const supplierText3 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            supplierText3.setAttribute('x', '35');
+            supplierText3.setAttribute('y', yProcess + 86);
+            supplierText3.setAttribute('font-size', '11');
+            supplierText3.setAttribute('fill', '#2d3748');
+            supplierText3.textContent = 'Delivery: Truck';
+            
+            supplierGroup.appendChild(supplierRect);
+            supplierGroup.appendChild(supplierText);
+            supplierGroup.appendChild(supplierText1);
+            supplierGroup.appendChild(supplierText2);
+            supplierGroup.appendChild(supplierText3);
+            elements.vsmCanvas.appendChild(supplierGroup);
+            
+            // CUSTOMER BOX
+            const customerGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            
+            const customerRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            customerRect.setAttribute('x', svgWidth - 200);
+            customerRect.setAttribute('y', yProcess);
+            customerRect.setAttribute('width', '160');
+            customerRect.setAttribute('height', '100');
+            customerRect.setAttribute('fill', '#fef3c7');
+            customerRect.setAttribute('stroke', '#f59e0b');
+            customerRect.setAttribute('stroke-width', '2');
+            customerRect.setAttribute('rx', '8');
+            customerRect.setAttribute('ry', '8');
+            customerRect.setAttribute('filter', 'drop-shadow(2px 4px 6px rgba(245, 158, 11, 0.2))');
+            
+            const customerText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            customerText.setAttribute('x', svgWidth - 120);
+            customerText.setAttribute('y', yProcess + 25);
+            customerText.setAttribute('text-anchor', 'middle');
+            customerText.setAttribute('font-weight', 'bold');
+            customerText.setAttribute('font-size', '14');
+            customerText.setAttribute('fill', '#f59e0b');
+            customerText.textContent = 'CUSTOMER';
+            
+            const customerText1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            customerText1.setAttribute('x', svgWidth - 185);
+            customerText1.setAttribute('y', yProcess + 50);
+            customerText1.setAttribute('font-size', '11');
+            customerText1.setAttribute('fill', '#2d3748');
+            customerText1.textContent = 'Orders: Monthly';
+            
+            const customerText2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            customerText2.setAttribute('x', svgWidth - 185);
+            customerText2.setAttribute('y', yProcess + 68);
+            customerText2.setAttribute('font-size', '11');
+            customerText2.setAttribute('fill', '#2d3748');
+            customerText2.textContent = 'Forecast: Weekly';
+            
+            const customerText3 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            customerText3.setAttribute('x', svgWidth - 185);
+            customerText3.setAttribute('y', yProcess + 86);
+            customerText3.setAttribute('font-size', '11');
+            customerText3.setAttribute('fill', '#2d3748');
+            customerText3.textContent = 'Delivery: Daily';
+            
+            customerGroup.appendChild(customerRect);
+            customerGroup.appendChild(customerText);
+            customerGroup.appendChild(customerText1);
+            customerGroup.appendChild(customerText2);
+            customerGroup.appendChild(customerText3);
+            elements.vsmCanvas.appendChild(customerGroup);
+            
+            // PRODUCTION CONTROL BOX
+            const controlGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            
+            const controlRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            controlRect.setAttribute('x', svgWidth / 2 - 100);
+            controlRect.setAttribute('y', yInfo - 40);
+            controlRect.setAttribute('width', '200');
+            controlRect.setAttribute('height', '80');
+            controlRect.setAttribute('fill', '#f3e8ff');
+            controlRect.setAttribute('stroke', '#9333ea');
+            controlRect.setAttribute('stroke-width', '2');
+            controlRect.setAttribute('rx', '8');
+            controlRect.setAttribute('ry', '8');
+            controlRect.setAttribute('filter', 'drop-shadow(2px 4px 6px rgba(147, 51, 234, 0.2))');
+            
+            const controlText1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            controlText1.setAttribute('x', svgWidth / 2);
+            controlText1.setAttribute('y', yInfo - 15);
+            controlText1.setAttribute('text-anchor', 'middle');
+            controlText1.setAttribute('font-weight', 'bold');
+            controlText1.setAttribute('font-size', '13');
+            controlText1.setAttribute('fill', '#9333ea');
+            controlText1.textContent = 'PRODUCTION';
+            
+            const controlText2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            controlText2.setAttribute('x', svgWidth / 2);
+            controlText2.setAttribute('y', yInfo);
+            controlText2.setAttribute('text-anchor', 'middle');
+            controlText2.setAttribute('font-weight', 'bold');
+            controlText2.setAttribute('font-size', '13');
+            controlText2.setAttribute('fill', '#9333ea');
+            controlText2.textContent = 'CONTROL';
+            
+            const controlText3 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            controlText3.setAttribute('x', svgWidth / 2 - 80);
+            controlText3.setAttribute('y', yInfo + 20);
+            controlText3.setAttribute('font-size', '10');
+            controlText3.setAttribute('fill', '#2d3748');
+            controlText3.textContent = 'MRP/ERP System';
+            
+            controlGroup.appendChild(controlRect);
+            controlGroup.appendChild(controlText1);
+            controlGroup.appendChild(controlText2);
+            controlGroup.appendChild(controlText3);
+            elements.vsmCanvas.appendChild(controlGroup);
+            
+            // INFORMATION FLOW - Customer to Production Control
+            const infoPath1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            infoPath1.setAttribute('d', `M ${svgWidth - 120} ${yProcess} 
+                  L ${svgWidth - 120} ${yInfo + 50}
+                  L ${svgWidth / 2 + 100} ${yInfo + 50}
+                  L ${svgWidth / 2 + 100} ${yInfo + 40}`);
+            infoPath1.setAttribute('stroke', '#9333ea');
+            infoPath1.setAttribute('stroke-width', '2');
+            infoPath1.setAttribute('fill', 'none');
+            infoPath1.setAttribute('stroke-dasharray', '5,5');
+            infoPath1.setAttribute('marker-end', 'url(#infoArrow)');
+            
+            const infoText1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            infoText1.setAttribute('x', svgWidth - 200);
+            infoText1.setAttribute('y', yInfo + 65);
+            infoText1.setAttribute('font-size', '10');
+            infoText1.setAttribute('fill', '#9333ea');
+            infoText1.setAttribute('font-style', 'italic');
+            infoText1.textContent = 'Orders';
+            
+            elements.vsmCanvas.appendChild(infoPath1);
+            elements.vsmCanvas.appendChild(infoText1);
+            
+            // INFORMATION FLOW - Production Control to Supplier
+            const infoPath2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            infoPath2.setAttribute('d', `M ${svgWidth / 2 - 100} ${yInfo + 20}
+                  L ${200} ${yInfo + 20}
+                  L ${200} ${yProcess}`);
+            infoPath2.setAttribute('stroke', '#9333ea');
+            infoPath2.setAttribute('stroke-width', '2');
+            infoPath2.setAttribute('fill', 'none');
+            infoPath2.setAttribute('stroke-dasharray', '5,5');
+            infoPath2.setAttribute('marker-end', 'url(#infoArrow)');
+            
+            const infoText2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            infoText2.setAttribute('x', '220');
+            infoText2.setAttribute('y', yInfo + 15);
+            infoText2.setAttribute('font-size', '10');
+            infoText2.setAttribute('fill', '#9333ea');
+            infoText2.setAttribute('font-style', 'italic');
+            infoText2.textContent = 'Purchase Orders';
+            
+            elements.vsmCanvas.appendChild(infoPath2);
+            elements.vsmCanvas.appendChild(infoText2);
+            
+            // INFORMATION FLOW - Production Control to Processes
+            state.machines.forEach((m, i) => {
+                const x = startX + i * gap + 100;
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', svgWidth / 2);
+                line.setAttribute('y1', yInfo + 40);
+                line.setAttribute('x2', x);
+                line.setAttribute('y2', yProcess);
+                line.setAttribute('stroke', '#9333ea');
+                line.setAttribute('stroke-width', '1.5');
+                line.setAttribute('stroke-dasharray', '5,5');
+                line.setAttribute('marker-end', 'url(#infoArrow)');
+                elements.vsmCanvas.appendChild(line);
+            });
+            
+            const infoText3 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            infoText3.setAttribute('x', svgWidth / 2 - 50);
+            infoText3.setAttribute('y', yInfo + 85);
+            infoText3.setAttribute('font-size', '10');
+            infoText3.setAttribute('fill', '#9333ea');
+            infoText3.setAttribute('font-style', 'italic');
+            infoText3.textContent = 'Production Schedule';
+            elements.vsmCanvas.appendChild(infoText3);
+            
+            // MATERIAL FLOW - Supplier to First Process
+            const materialLine1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            materialLine1.setAttribute('x1', '180');
+            materialLine1.setAttribute('y1', yProcess + 50);
+            materialLine1.setAttribute('x2', startX);
+            materialLine1.setAttribute('y2', yProcess + 75);
+            materialLine1.setAttribute('stroke', '#667eea');
+            materialLine1.setAttribute('stroke-width', '3');
+            materialLine1.setAttribute('marker-end', 'url(#arrow)');
+            elements.vsmCanvas.appendChild(materialLine1);
+            
+            // MATERIAL FLOW - Last Process to Customer
+            const materialLine2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            materialLine2.setAttribute('x1', startX + (state.machines.length - 1) * gap + 200);
+            materialLine2.setAttribute('y1', yProcess + 75);
+            materialLine2.setAttribute('x2', svgWidth - 200);
+            materialLine2.setAttribute('y2', yProcess + 50);
+            materialLine2.setAttribute('stroke', '#667eea');
+            materialLine2.setAttribute('stroke-width', '3');
+            materialLine2.setAttribute('marker-end', 'url(#arrow)');
+            elements.vsmCanvas.appendChild(materialLine2);
+            
+            // PROCESS BOXES
+            state.machines.forEach((m, i) => {
+                const x = startX + i * gap;
+                const uptime = m.breakdown ? `${100 - Number(m.breakdown)}%` : "NA";
+                
+                const processGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                
+                // Process Box
+                const processRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                processRect.setAttribute('x', x);
+                processRect.setAttribute('y', yProcess);
+                processRect.setAttribute('width', '200');
+                processRect.setAttribute('height', '150');
+                processRect.setAttribute('fill', '#ffffff');
+                processRect.setAttribute('stroke', '#667eea');
+                processRect.setAttribute('stroke-width', '2');
+                processRect.setAttribute('rx', '8');
+                processRect.setAttribute('ry', '8');
+                processRect.setAttribute('filter', 'drop-shadow(2px 4px 6px rgba(102, 126, 234, 0.2))');
+                
+                // Process Name
+                const processName = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                processName.setAttribute('x', x + 100);
+                processName.setAttribute('y', yProcess + 20);
+                processName.setAttribute('text-anchor', 'middle');
+                processName.setAttribute('font-weight', 'bold');
+                processName.setAttribute('font-size', '13');
+                processName.setAttribute('fill', '#667eea');
+                processName.textContent = m.name || `Process ${i + 1}`;
+                
+                // Process Details
+                const details = [
+                    `Operators: ${m.operators || "-"}`,
+                    `Cycle Time: ${m.cycleTime || "-"} sec`,
+                    `Changeover: ${m.totalChange || "-"} min`,
+                    `Shift: 1`,
+                    `Available: ${m.seconds || "-"} sec`,
+                    `Uptime: ${uptime}`,
+                    `Rejection: ${m.rejection || "-"} %`,
+                    `Rework: ${m.rework || "-"} %`
+                ];
+                
+                processGroup.appendChild(processRect);
+                processGroup.appendChild(processName);
+                
+                details.forEach((detail, idx) => {
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', x + 10);
+                    text.setAttribute('y', yProcess + 40 + (idx * 14));
+                    text.setAttribute('font-size', '11');
+                    text.setAttribute('fill', '#2d3748');
+                    text.textContent = detail;
+                    processGroup.appendChild(text);
+                });
+                
+                // Flow Arrow between processes
+                if (i < state.machines.length - 1) {
+                    const flowArrow = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    flowArrow.setAttribute('x1', x + 200);
+                    flowArrow.setAttribute('y1', yProcess + 75);
+                    flowArrow.setAttribute('x2', x + gap);
+                    flowArrow.setAttribute('y2', yProcess + 75);
+                    flowArrow.setAttribute('stroke', '#667eea');
+                    flowArrow.setAttribute('stroke-width', '2.5');
+                    flowArrow.setAttribute('marker-end', 'url(#arrow)');
+                    processGroup.appendChild(flowArrow);
+                }
+                
+                elements.vsmCanvas.appendChild(processGroup);
+            });
+            
+            // LEAD TIME LADDER
+            const ladderGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            
+            // Timeline Base
+            const timelineBase = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            timelineBase.setAttribute('x1', startX);
+            timelineBase.setAttribute('y1', yInventory + 130);
+            timelineBase.setAttribute('x2', startX + state.machines.length * gap);
+            timelineBase.setAttribute('y2', yInventory + 130);
+            timelineBase.setAttribute('stroke', '#2d3748');
+            timelineBase.setAttribute('stroke-width', '2');
+            ladderGroup.appendChild(timelineBase);
+            
+            // Cycle Time and Wait Time markers
+            state.machines.forEach((m, i) => {
+                const x = startX + i * gap + 110;
+                const cycleTime = m.cycleTime || 0;
+                const inventoryDays = i < state.machines.length - 1 ? (state.machines[i + 1].inventory || 0) : 0;
+                
+                // Cycle Time (down arrow)
+                const cycleLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                cycleLine.setAttribute('x1', x);
+                cycleLine.setAttribute('y1', yInventory + 120);
+                cycleLine.setAttribute('x2', x);
+                cycleLine.setAttribute('y2', yInventory + 150);
+                cycleLine.setAttribute('stroke', '#10b981');
+                cycleLine.setAttribute('stroke-width', '2');
+                ladderGroup.appendChild(cycleLine);
+                
+                const cycleRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                cycleRect.setAttribute('x', x - 35);
+                cycleRect.setAttribute('y', yInventory + 150);
+                cycleRect.setAttribute('width', '70');
+                cycleRect.setAttribute('height', '35');
+                cycleRect.setAttribute('fill', '#d1fae5');
+                cycleRect.setAttribute('stroke', '#10b981');
+                cycleRect.setAttribute('stroke-width', '1.5');
+                cycleRect.setAttribute('rx', '4');
+                ladderGroup.appendChild(cycleRect);
+                
+                const cycleText1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                cycleText1.setAttribute('x', x);
+                cycleText1.setAttribute('y', yInventory + 165);
+                cycleText1.setAttribute('text-anchor', 'middle');
+                cycleText1.setAttribute('font-size', '10');
+                cycleText1.setAttribute('fill', '#065f46');
+                cycleText1.setAttribute('font-weight', '600');
+                cycleText1.textContent = 'C/T';
+                ladderGroup.appendChild(cycleText1);
+                
+                const cycleText2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                cycleText2.setAttribute('x', x);
+                cycleText2.setAttribute('y', yInventory + 178);
+                cycleText2.setAttribute('text-anchor', 'middle');
+                cycleText2.setAttribute('font-size', '10');
+                cycleText2.setAttribute('fill', '#065f46');
+                cycleText2.setAttribute('font-weight', '600');
+                cycleText2.textContent = cycleTime ? `${cycleTime}s` : '-';
+                ladderGroup.appendChild(cycleText2);
+                
+                // Wait Time (up arrow)
+                if (i < state.machines.length - 1) {
+                    const waitLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    waitLine.setAttribute('x1', x + 120);
+                    waitLine.setAttribute('y1', yInventory + 120);
+                    waitLine.setAttribute('x2', x + 120);
+                    waitLine.setAttribute('y2', yInventory + 90);
+                    waitLine.setAttribute('stroke', '#ef4444');
+                    waitLine.setAttribute('stroke-width', '2');
+                    ladderGroup.appendChild(waitLine);
+                    
+                    const waitRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    waitRect.setAttribute('x', x + 85);
+                    waitRect.setAttribute('y', yInventory + 55);
+                    waitRect.setAttribute('width', '70');
+                    waitRect.setAttribute('height', '35');
+                    waitRect.setAttribute('fill', '#fee2e2');
+                    waitRect.setAttribute('stroke', '#ef4444');
+                    waitRect.setAttribute('stroke-width', '1.5');
+                    waitRect.setAttribute('rx', '4');
+                    ladderGroup.appendChild(waitRect);
+                    
+                    const waitText1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    waitText1.setAttribute('x', x + 120);
+                    waitText1.setAttribute('y', yInventory + 70);
+                    waitText1.setAttribute('text-anchor', 'middle');
+                    waitText1.setAttribute('font-size', '10');
+                    waitText1.setAttribute('fill', '#991b1b');
+                    waitText1.setAttribute('font-weight', '600');
+                    waitText1.textContent = 'Wait';
+                    ladderGroup.appendChild(waitText1);
+                    
+                    const waitText2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    waitText2.setAttribute('x', x + 120);
+                    waitText2.setAttribute('y', yInventory + 83);
+                    waitText2.setAttribute('text-anchor', 'middle');
+                    waitText2.setAttribute('font-size', '10');
+                    waitText2.setAttribute('fill', '#991b1b');
+                    waitText2.setAttribute('font-weight', '600');
+                    waitText2.textContent = inventoryDays ? `${inventoryDays}d` : '-';
+                    ladderGroup.appendChild(waitText2);
+                }
+            });
+            
+            elements.vsmCanvas.appendChild(ladderGroup);
+            
+            // Summary Totals
+            const totalCycleTime = state.machines.reduce((sum, m) => sum + Number(m.cycleTime || 0), 0);
+            const totalLeadTime = state.machines.reduce((sum, m, i) => {
+                const inv = i < state.machines.length - 1 ? Number(state.machines[i + 1].inventory || 0) : 0;
+                return sum + inv;
+            }, 0);
+            
+            const totalWait = state.machines.reduce((sum, m, i) => {
+                const inv = i < state.machines.length - 1 ? Number(state.machines[i + 1].inventory || 0) : 0;
+                return sum + inv * 24 * 3600; // convert days to seconds
+            }, 0);
+            
+            const ratio = totalWait > 0 ? ((totalCycleTime / (totalCycleTime + totalWait)) * 100).toFixed(2) : 100;
+            
+            // Total Cycle Time box
+            const totalCycleBox = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            totalCycleBox.setAttribute('x', startX);
+            totalCycleBox.setAttribute('y', yInventory + 200);
+            totalCycleBox.setAttribute('width', '180');
+            totalCycleBox.setAttribute('height', '45');
+            totalCycleBox.setAttribute('fill', '#d1fae5');
+            totalCycleBox.setAttribute('stroke', '#10b981');
+            totalCycleBox.setAttribute('stroke-width', '2');
+            totalCycleBox.setAttribute('rx', '6');
+            elements.vsmCanvas.appendChild(totalCycleBox);
+            
+            const totalCycleText1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            totalCycleText1.setAttribute('x', startX + 90);
+            totalCycleText1.setAttribute('y', yInventory + 218);
+            totalCycleText1.setAttribute('text-anchor', 'middle');
+            totalCycleText1.setAttribute('font-size', '11');
+            totalCycleText1.setAttribute('fill', '#065f46');
+            totalCycleText1.setAttribute('font-weight', '600');
+            totalCycleText1.textContent = 'Total Cycle Time';
+            elements.vsmCanvas.appendChild(totalCycleText1);
+            
+            const totalCycleText2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            totalCycleText2.setAttribute('x', startX + 90);
+            totalCycleText2.setAttribute('y', yInventory + 235);
+            totalCycleText2.setAttribute('text-anchor', 'middle');
+            totalCycleText2.setAttribute('font-size', '13');
+            totalCycleText2.setAttribute('fill', '#065f46');
+            totalCycleText2.setAttribute('font-weight', '700');
+            totalCycleText2.textContent = `${totalCycleTime} sec`;
+            elements.vsmCanvas.appendChild(totalCycleText2);
+            
+            // Total Lead Time box
+            const totalLeadBox = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            totalLeadBox.setAttribute('x', startX + 200);
+            totalLeadBox.setAttribute('y', yInventory + 200);
+            totalLeadBox.setAttribute('width', '180');
+            totalLeadBox.setAttribute('height', '45');
+            totalLeadBox.setAttribute('fill', '#fee2e2');
+            totalLeadBox.setAttribute('stroke', '#ef4444');
+            totalLeadBox.setAttribute('stroke-width', '2');
+            totalLeadBox.setAttribute('rx', '6');
+            elements.vsmCanvas.appendChild(totalLeadBox);
+            
+            const totalLeadText1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            totalLeadText1.setAttribute('x', startX + 290);
+            totalLeadText1.setAttribute('y', yInventory + 218);
+            totalLeadText1.setAttribute('text-anchor', 'middle');
+            totalLeadText1.setAttribute('font-size', '11');
+            totalLeadText1.setAttribute('fill', '#991b1b');
+            totalLeadText1.setAttribute('font-weight', '600');
+            totalLeadText1.textContent = 'Total Lead Time';
+            elements.vsmCanvas.appendChild(totalLeadText1);
+            
+            const totalLeadText2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            totalLeadText2.setAttribute('x', startX + 290);
+            totalLeadText2.setAttribute('y', yInventory + 235);
+            totalLeadText2.setAttribute('text-anchor', 'middle');
+            totalLeadText2.setAttribute('font-size', '13');
+            totalLeadText2.setAttribute('fill', '#991b1b');
+            totalLeadText2.setAttribute('font-weight', '700');
+            totalLeadText2.textContent = `${totalLeadTime} days`;
+            elements.vsmCanvas.appendChild(totalLeadText2);
+            
+            // Value-Added Ratio box
+            const ratioBox = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            ratioBox.setAttribute('x', startX + 400);
+            ratioBox.setAttribute('y', yInventory + 200);
+            ratioBox.setAttribute('width', '180');
+            ratioBox.setAttribute('height', '45');
+            ratioBox.setAttribute('fill', '#e0e7ff');
+            ratioBox.setAttribute('stroke', '#667eea');
+            ratioBox.setAttribute('stroke-width', '2');
+            ratioBox.setAttribute('rx', '6');
+            elements.vsmCanvas.appendChild(ratioBox);
+            
+            const ratioText1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            ratioText1.setAttribute('x', startX + 490);
+            ratioText1.setAttribute('y', yInventory + 218);
+            ratioText1.setAttribute('text-anchor', 'middle');
+            ratioText1.setAttribute('font-size', '11');
+            ratioText1.setAttribute('fill', '#4338ca');
+            ratioText1.setAttribute('font-weight', '600');
+            ratioText1.textContent = 'Value-Added Ratio';
+            elements.vsmCanvas.appendChild(ratioText1);
+            
+            const ratioText2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            ratioText2.setAttribute('x', startX + 490);
+            ratioText2.setAttribute('y', yInventory + 235);
+            ratioText2.setAttribute('text-anchor', 'middle');
+            ratioText2.setAttribute('font-size', '13');
+            ratioText2.setAttribute('fill', '#4338ca');
+            ratioText2.setAttribute('font-weight', '700');
+            ratioText2.textContent = `${ratio}%`;
+            elements.vsmCanvas.appendChild(ratioText2);
+            
+            // Legend
+            const legendText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            legendText.setAttribute('x', startX);
+            legendText.setAttribute('y', yInventory + 40);
+            legendText.setAttribute('font-size', '12');
+            legendText.setAttribute('fill', '#2d3748');
+            legendText.setAttribute('font-weight', '600');
+            legendText.textContent = 'Lead Time Ladder:';
+            elements.vsmCanvas.appendChild(legendText);
+        }
+
+        // Export canvas as PNG
+        function exportAsPNG() {
+            const svgData = new XMLSerializer().serializeToString(elements.vsmCanvas);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            
+            const svgWidth = parseInt(elements.vsmCanvas.getAttribute('width'));
+            const svgHeight = parseInt(elements.vsmCanvas.getAttribute('height'));
+            
+            canvas.width = svgWidth;
+            canvas.height = svgHeight;
+            
+            img.onload = function() {
+                ctx.drawImage(img, 0, 0);
+                
+                const pngUrl = canvas.toDataURL('image/png');
+                const downloadLink = document.createElement('a');
+                downloadLink.download = 'current-stream-map.png';
+                downloadLink.href = pngUrl;
+                downloadLink.click();
+                
+                showNotification('VSM exported as PNG successfully!', 'success');
+            };
+            
+            img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            // Remove existing notification
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            const notification = document.createElement('div');
+            notification.className = `fixed top-6 right-6 px-6 py-4 rounded-lg shadow-lg text-white z-50 notification animate-fade-in ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 
+                'bg-blue-500'
+            }`;
+            
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} mr-3"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Remove notification after 3 seconds
+            setTimeout(() => {
+                notification.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html> 
