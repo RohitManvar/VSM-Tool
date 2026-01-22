@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-
-<html class="light" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Process Sequence Builder - VSM</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Process Sequence Builder - VSM</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
@@ -26,320 +26,770 @@
             },
         }
     </script>
-<style>
+    <style>
         body { font-family: 'Inter', sans-serif; }
         .drag-handle { cursor: grab; }
         .drag-handle:active { cursor: grabbing; }
+        /* Hide default file input */
+        #excelFileInput {
+            display: none;
+        }
     </style>
 </head>
 <body class="bg-background-light dark:bg-background-dark font-display text-[#0d131b] dark:text-slate-200">
-<div class="relative flex min-h-screen w-full flex-col">
-<!-- Top Navigation Bar -->
-<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark px-10 py-3 sticky top-0 z-50">
-<div class="flex items-center gap-8">
-<div class="flex items-center gap-4 text-primary"><div class="flex items-center gap-3">
-    <div class="size-10 bg-white rounded-lg flex items-center justify-center shadow-lg">
-      <img
-        src="D:/Faber Infinite/LFD Design Phase/logo.jpg"
-        alt="Company Logo"
-        class="w-6 h-6 object-contain"
-      />
-    </div>
-  </div>
-<h2 class="text-[#0d131b] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">VSM</h2>
-</div>
-<nav class="flex items-center gap-9">
-    <a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Dashboard</a>
-    <a class="text-primary text-sm font-bold" href="#">Projects</a>
-    <!-- <a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Templates</a>
-    <a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Reports</a> -->
-    </nav></div>
-<div class="flex flex-1 justify-end gap-6 items-center">
-<!-- <label class="flex flex-col min-w-40 !h-10 max-w-64">
-<div class="flex w-full flex-1 items-stretch rounded-lg h-full relative">
-<div class="text-[#4c6c9a] absolute left-3 top-1/2 -translate-y-1/2">
-<span class="material-symbols-outlined text-xl">search</span>
-</div>
-<input class="form-input flex w-full min-w-0 flex-1 rounded-lg text-[#0d131b] dark:text-white border-none bg-slate-100 dark:bg-slate-800 focus:ring-2 focus:ring-primary pl-10 text-sm font-normal" placeholder="Search processes..." value=""/>
-</div>
-</label> -->
-<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-slate-200" data-alt="User avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD9VgUy0-9hhet-G5pt-5LE7ym_udv4S5tX-wWbZEI-hmG68eB9A8kCJjw-JxPyQAooz7ip3FKIVG5buKl9sxktlcNJYTMOBJS7L5dd9Fzizo3wrxLzrnetxRtvCj_lhI_m_ZasNZuuDytBaiTloMvQFFbAEZpgFzVdRHuqfGECqaVa6gnGg1YRbEDluc9lJRjs_4EF-_sOrnHY7xvolo7dMcJ4JATH8BibDDQ7lOcLHe6kd5Wx2H-YQCq5M3Mwa1OAfKXo-pM2Lbs");'></div>
-</div>
-</header>
-<div class="flex flex-1">
-<!-- Sidebar Navigation -->
-<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark hidden lg:flex flex-col p-4 gap-6">
-<div class="flex flex-col px-3">
-<h1 class="text-primary text-sm font-bold uppercase tracking-wider">Project ABC</h1>
-<p class="text-[#4c6c9a] dark:text-slate-400 text-xs font-medium">Manufacturing Line A</p>
-</div>
-<div class="flex flex-col gap-1">
-<div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary">
-<span class="material-symbols-outlined font-bold">account_tree</span>
-<p class="text-sm font-bold">Process Builder</p>
-<!-- </div>
-<div class="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group">
-<span class="material-symbols-outlined text-slate-500 group-hover:text-primary">inventory_2</span>
-<p class="text-[#4c6c9a] group-hover:text-[#0d131b] dark:group-hover:text-white text-sm font-medium">Inventory Map</p>
-</div>
-<div class="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group">
-<span class="material-symbols-outlined text-slate-500 group-hover:text-primary">schedule</span>
-<p class="text-[#4c6c9a] group-hover:text-[#0d131b] dark:group-hover:text-white text-sm font-medium">Lead Time Analysis</p>
-</div>
-<div class="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group">
-<span class="material-symbols-outlined text-slate-500 group-hover:text-primary">bar_chart</span>
-<p class="text-[#4c6c9a] group-hover:text-[#0d131b] dark:group-hover:text-white text-sm font-medium">Reports</p>
-</div> -->
-</div>
-</aside>
-<!-- Main Content Area -->
-<main class="flex-1 overflow-y-auto px-8 py-6">
-<!-- Breadcrumbs -->
-<nav class="flex items-center gap-2 mb-4 text-sm font-medium text-[#4c6c9a]">
-<a class="hover:text-primary transition-colors" href="#">Projects</a>
-<span class="material-symbols-outlined text-base">chevron_right</span>
-<a class="hover:text-primary transition-colors" href="#">Line A</a>
-<span class="material-symbols-outlined text-base">chevron_right</span>
-<span class="text-[#0d131b] dark:text-white font-semibold">Process Sequence Builder</span>
-</nav>
-<!-- Page Header -->
-<div class="flex flex-wrap items-end justify-between gap-4 mb-8">
-<div class="flex flex-col gap-1">
-<h1 class="text-[#0d131b] dark:text-white text-4xl font-black tracking-tight">Process Sequence Builder</h1>
-<p class="text-[#4c6c9a] dark:text-slate-400 text-base max-w-xl">Configure manufacturing sequence, inventory buffers, and process cycles to auto-calculate your Value Stream metrics.</p>
-</div>
-<div class="flex gap-3">
-<button class="flex items-center gap-2 rounded-lg h-11 px-6 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-[#0d131b] dark:text-white text-sm font-bold hover:bg-slate-50 transition-all">
-<span class="material-symbols-outlined text-lg">upload_file</span>
-                            Import CSV
+    <div class="relative flex min-h-screen w-full flex-col">
+        <!-- Top Navigation Bar -->
+        <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark px-10 py-3 sticky top-0 z-50">
+            <div class="flex items-center gap-8">
+                <div class="flex items-center gap-4 text-primary">
+                    <div class="flex items-center gap-3">
+                        <div class="size-10 bg-white rounded-lg flex items-center justify-center shadow-lg">
+                            <img
+                                src="D:/Faber Infinite/LFD Design Phase/logo.jpg"
+                                alt="Company Logo"
+                                class="w-6 h-6 object-contain"
+                            />
+                        </div>
+                    </div>
+                    <h2 class="text-[#0d131b] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">VSM</h2>
+                </div>
+                <nav class="flex items-center gap-9">
+                    <a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Dashboard</a>
+                    <a class="text-primary text-sm font-bold" href="#">Projects</a>
+                </nav>
+            </div>
+            <div class="flex flex-1 justify-end gap-6 items-center">
+                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-slate-200" data-alt="User avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD9VgUy0-9hhet-G5pt-5LE7ym_udv4S5tX-wWbZEI-hmG68eB9A8kCJjw-JxPyQAooz7ip3FKIVG5buKl9sxktlcNJYTMOBJS7L5dd9Fzizo3wrxLzrnetxRtvCj_lhI_m_ZasNZuuDytBaiTloMvQFFbAEZpgFzVdRHuqfGECqaVa6gnGg1YRbEDluc9lJRjs_4EF-_sOrnHY7xvolo7dMcJ4JATH8BibDDQ7lOcLHe6kd5Wx2H-YQCq5M3Mwa1OAfKXo-pM2Lbs");'></div>
+            </div>
+        </header>
+        
+        <div class="flex flex-1">
+            <!-- Sidebar Navigation -->
+            <aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark hidden lg:flex flex-col p-4 gap-6">
+                <div class="flex flex-col px-3">
+                    <h1 class="text-primary text-sm font-bold uppercase tracking-wider">Project ABC</h1>
+                    <p class="text-[#4c6c9a] dark:text-slate-400 text-xs font-medium">Manufacturing Line A</p>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary">
+                        <span class="material-symbols-outlined font-bold">account_tree</span>
+                        <p class="text-sm font-bold">Process Builder</p>
+                    </div>
+                </div>
+            </aside>
+            
+            <!-- Main Content Area -->
+            <main class="flex-1 overflow-y-auto px-8 py-6">
+                <!-- Breadcrumbs -->
+                <nav class="flex items-center gap-2 mb-4 text-sm font-medium text-[#4c6c9a]">
+                    <a class="hover:text-primary transition-colors" href="#">Projects</a>
+                    <span class="material-symbols-outlined text-base">chevron_right</span>
+                    <a class="hover:text-primary transition-colors" href="#">Line A</a>
+                    <span class="material-symbols-outlined text-base">chevron_right</span>
+                    <span class="text-[#0d131b] dark:text-white font-semibold">Process Sequence Builder</span>
+                </nav>
+                
+                <!-- Page Header -->
+                <div class="flex flex-wrap items-end justify-between gap-4 mb-8">
+                    <div class="flex flex-col gap-1">
+                        <h1 class="text-[#0d131b] dark:text-white text-4xl font-black tracking-tight">Process Sequence Builder</h1>
+                        <p class="text-[#4c6c9a] dark:text-slate-400 text-base max-w-xl">Configure manufacturing sequence, inventory buffers, and process cycles to auto-calculate your Value Stream metrics.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <!-- Excel Import Button -->
+                        <button id="importExcelBtn" class="flex items-center gap-2 rounded-lg h-11 px-6 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-[#0d131b] dark:text-white text-sm font-bold hover:bg-slate-50 transition-all">
+                            <span class="material-symbols-outlined text-lg">upload_file</span>
+                            Import Excel
                         </button>
-<button class="flex items-center gap-2 rounded-lg h-11 px-6 bg-primary text-white text-sm font-bold hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all">
-<span class="material-symbols-outlined text-lg">add</span>
+                        <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" onchange="handleExcelUpload(event)">
+                        
+                        <button class="flex items-center gap-2 rounded-lg h-11 px-6 bg-primary text-white text-sm font-bold hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all">
+                            <span class="material-symbols-outlined text-lg">add</span>
                             Add Process Step
                         </button>
-</div>
-</div>
-<!-- Metrics Dashboard Mini-summary -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-<div class="flex flex-col gap-1 rounded-xl p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
-<div class="flex items-center gap-2 text-[#4c6c9a] mb-1">
-<span class="material-symbols-outlined text-lg">timer</span>
-<p class="text-sm font-medium">Total Cycle Time</p>
-</div>
-<p class="text-[#0d131b] dark:text-white text-3xl font-bold tracking-tight">450 <span class="text-sm font-normal text-slate-400 uppercase">sec</span></p>
-</div>
-<div class="flex flex-col gap-1 rounded-xl p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
-<div class="flex items-center gap-2 text-[#4c6c9a] mb-1">
-<span class="material-symbols-outlined text-lg">history</span>
-<p class="text-sm font-medium">Total Lead Time</p>
-</div>
-<p class="text-[#0d131b] dark:text-white text-3xl font-bold tracking-tight">12.4 <span class="text-sm font-normal text-slate-400 uppercase">hrs</span></p>
-</div>
-<div class="flex flex-col gap-1 rounded-xl p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
-<div class="flex items-center gap-2 text-[#4c6c9a] mb-1">
-<span class="material-symbols-outlined text-lg"></span>
-<p class="text-sm font-medium"></p>
-</div>
-<p class="text-[#0d131b] dark:text-white text-3xl font-bold tracking-tight"> <span class="text-sm font-normal text-slate-400 uppercase"></span></p>
-</div>
-</div>
-<!-- Process Steps List -->
-<div class="flex flex-col gap-3 pb-12">
-<div class="grid grid-cols-12 px-6 py-2 text-xs font-bold uppercase tracking-widest text-[#4c6c9a]">
-<div class="col-span-1">#</div>
-<div class="col-span-4">Process Details</div>
-<div class="col-span-2 text-center">Cycle Time (s)</div>
-<div class="col-span-2 text-center">Inventory (WIP)</div>
-<div class="col-span-2 text-center">Operators</div>
-<div class="col-span-1 text-right">Actions</div>
-</div>
-<!-- Step 1 Card -->
-<div class="grid grid-cols-12 items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 hover:shadow-md transition-shadow group">
-<div class="col-span-1 flex items-center gap-3">
-<span class="material-symbols-outlined drag-handle text-slate-300 dark:text-slate-600">drag_indicator</span>
-<span class="flex items-center justify-center size-7 rounded-full bg-primary text-white text-xs font-bold">1</span>
-</div>
-<div class="col-span-4 pr-4">
-<input class="w-full bg-transparent border-none p-0 text-[#0d131b] dark:text-white font-semibold text-lg focus:ring-0" type="text" value="Laser Cutting Station"/>
-<p class="text-xs text-[#4c6c9a] uppercase font-bold mt-0.5">Primary Processing</p>
-</div>
-<div class="col-span-2 text-center">
-<div class="inline-flex flex-col">
-<input class="w-24 text-center bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg font-bold text-primary focus:ring-primary focus:border-primary" type="number" value="120"/>
-</div>
-</div>
-<div class="col-span-2 text-center">
-<div class="inline-flex flex-col">
-<input class="w-24 text-center bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg font-bold text-[#0d131b] dark:text-white focus:ring-primary focus:border-primary" type="number" value="500"/>
-</div>
-</div>
-<div class="col-span-2 text-center">
-<div class="inline-flex items-center justify-center gap-2">
-<button class="size-8 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100">-</button>
-<span class="w-8 text-center font-bold">2</span>
-<button class="size-8 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100">+</button>
-</div>
-</div>
-<div class="col-span-1 text-right">
-<div class="flex items-center justify-end gap-2">
-<button class="text-slate-400 hover:text-primary transition-colors">
-<span class="material-symbols-outlined">content_copy</span>
-</button>
-<button class="text-slate-400 hover:text-red-500 transition-colors">
-<span class="material-symbols-outlined">delete</span>
-</button>
-</div>
-</div>
-</div>
-<!-- Step 2 Card -->
-<div class="grid grid-cols-12 items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 hover:shadow-md transition-shadow group">
-<div class="col-span-1 flex items-center gap-3">
-<span class="material-symbols-outlined drag-handle text-slate-300 dark:text-slate-600">drag_indicator</span>
-<span class="flex items-center justify-center size-7 rounded-full bg-primary text-white text-xs font-bold">2</span>
-</div>
-<div class="col-span-4 pr-4">
-<input class="w-full bg-transparent border-none p-0 text-[#0d131b] dark:text-white font-semibold text-lg focus:ring-0" type="text" value="Precision Deburring"/>
-<p class="text-xs text-[#4c6c9a] uppercase font-bold mt-0.5">Finishing Step</p>
-</div>
-<div class="col-span-2 text-center">
-<div class="inline-flex flex-col">
-<input class="w-24 text-center bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg font-bold text-primary focus:ring-primary focus:border-primary" type="number" value="45"/>
-</div>
-</div>
-<div class="col-span-2 text-center">
-<div class="inline-flex flex-col">
-<input class="w-24 text-center bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg font-bold text-[#0d131b] dark:text-white focus:ring-primary focus:border-primary" type="number" value="250"/>
-</div>
-</div>
-<div class="col-span-2 text-center">
-<div class="inline-flex items-center justify-center gap-2">
-<button class="size-8 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100">-</button>
-<span class="w-8 text-center font-bold">1</span>
-<button class="size-8 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100">+</button>
-</div>
-</div>
-<div class="col-span-1 text-right">
-<div class="flex items-center justify-end gap-2">
-<button class="text-slate-400 hover:text-primary transition-colors">
-<span class="material-symbols-outlined">content_copy</span>
-</button>
-<button class="text-slate-400 hover:text-red-500 transition-colors">
-<span class="material-symbols-outlined">delete</span>
-</button>
-</div>
-</div>
-</div>
-<!-- Step 3 Card (Active State Simulation) -->
-<div class="grid grid-cols-12 items-center bg-white dark:bg-slate-800 border-2 border-primary rounded-xl p-5 shadow-lg group">
-<div class="col-span-1 flex items-center gap-3">
-<span class="material-symbols-outlined drag-handle text-primary">drag_indicator</span>
-<span class="flex items-center justify-center size-7 rounded-full bg-primary text-white text-xs font-bold">3</span>
-</div>
-<div class="col-span-4 pr-4">
-<input class="w-full bg-transparent border-none p-0 text-[#0d131b] dark:text-white font-semibold text-lg focus:ring-0" type="text" value="Quality Inspection"/>
-<p class="text-xs text-primary uppercase font-bold mt-0.5">Currently Editing</p>
-</div>
-<div class="col-span-2 text-center">
-<div class="inline-flex flex-col">
-<input class="w-24 text-center bg-primary/5 dark:bg-primary/20 border-primary rounded-lg font-bold text-primary focus:ring-primary focus:border-primary" type="number" value="180"/>
-</div>
-</div>
-<div class="col-span-2 text-center">
-<div class="inline-flex flex-col">
-<input class="w-24 text-center bg-primary/5 dark:bg-primary/20 border-primary rounded-lg font-bold text-[#0d131b] dark:text-white focus:ring-primary focus:border-primary" type="number" value="120"/>
-</div>
-</div>
-<div class="col-span-2 text-center">
-<div class="inline-flex items-center justify-center gap-2">
-<button class="size-8 rounded-lg border border-primary/30 text-primary hover:bg-primary/10">-</button>
-<span class="w-8 text-center font-bold">3</span>
-<button class="size-8 rounded-lg border border-primary/30 text-primary hover:bg-primary/10">+</button>
-</div>
-</div>
-<div class="col-span-1 text-right">
-<div class="flex items-center justify-end gap-2">
-<button class="text-primary">
-<span class="material-symbols-outlined">save</span>
-</button>
-<button class="text-slate-400 hover:text-red-500 transition-colors">
-<span class="material-symbols-outlined">delete</span>
-</button>
-</div>
-</div>
-</div>
-<!-- Step 4 Card -->
-<div class="grid grid-cols-12 items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 hover:shadow-md transition-shadow group">
-<div class="col-span-1 flex items-center gap-3">
-<span class="material-symbols-outlined drag-handle text-slate-300 dark:text-slate-600">drag_indicator</span>
-<span class="flex items-center justify-center size-7 rounded-full bg-primary text-white text-xs font-bold">4</span>
-</div>
-<div class="col-span-4 pr-4">
-<input class="w-full bg-transparent border-none p-0 text-[#0d131b] dark:text-white font-semibold text-lg focus:ring-0" type="text" value="Final Packaging"/>
-<p class="text-xs text-[#4c6c9a] uppercase font-bold mt-0.5">Logistics Preparation</p>
-</div>
-<div class="col-span-2 text-center">
-<div class="inline-flex flex-col">
-<input class="w-24 text-center bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg font-bold text-primary focus:ring-primary focus:border-primary" type="number" value="105"/>
-</div>
-</div>
-<div class="col-span-2 text-center">
-<div class="inline-flex flex-col">
-<input class="w-24 text-center bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg font-bold text-[#0d131b] dark:text-white focus:ring-primary focus:border-primary" type="number" value="380"/>
-</div>
-</div>
-<div class="col-span-2 text-center">
-<div class="inline-flex items-center justify-center gap-2">
-<button class="size-8 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100">-</button>
-<span class="w-8 text-center font-bold">2</span>
-<button class="size-8 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100">+</button>
-</div>
-</div>
-<div class="col-span-1 text-right">
-<div class="flex items-center justify-end gap-2">
-<button class="text-slate-400 hover:text-primary transition-colors">
-<span class="material-symbols-outlined">content_copy</span>
-</button>
-<button class="text-slate-400 hover:text-red-500 transition-colors">
-<span class="material-symbols-outlined">delete</span>
-</button>
-</div>
-</div>
-</div>
-<!-- Add Step Button (Inline Placeholder) -->
-<button class="w-full border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl p-8 flex flex-col items-center justify-center text-slate-400 hover:border-primary hover:text-primary transition-all group">
-<span class="material-symbols-outlined text-4xl mb-2 group-hover:scale-110 transition-transform">add_circle</span>
-<span class="font-bold text-lg">Add New Step</span>
-<span class="text-sm">Sequence step #5</span>
-</button>
-</div>
-</main>
-</div>
-<!-- Sticky Footer Calculation Summary -->
-<footer class="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-10 py-4 flex items-center justify-between z-50">
-<div class="flex items-center gap-8">
-<div class="flex flex-col">
-<span class="text-[10px] uppercase font-black text-slate-400 tracking-widest"></span>
-<div class="flex items-center gap-2 text-green-500">
-<span class="material-symbols-outlined text-sm"></span>
-<span class="text-sm font-bold"></span>
-</div>
-</div>
-<div class="h-8 w-px bg-slate-200 dark:bg-slate-700"></div>
-<div class="flex gap-10">
-<div class="flex flex-col">
-<span class="text-[10px] uppercase font-black text-slate-400 tracking-widest"></span>
-<span class="text-lg font-bold text-primary"></span>
-</div>
-<div class="flex flex-col">
-<span class="text-[10px] uppercase font-black text-slate-400 tracking-widest"></span>
-<span class="text-lg font-bold"> <span class="text-xs text-slate-500"></span></span>
-</div>
-</div>
-</div>
-<div class="flex items-center gap-4">
-<button class="px-6 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">Discard Changes</button>
-<button class="px-8 py-2.5 bg-primary text-white rounded-lg font-bold shadow-lg shadow-primary/25 hover:translate-y-[-1px] transition-all">Generate Current State</button>
-</div>
-</footer>
-</div>
-</body></html>
+                    </div>
+                </div>
+                
+                <!-- Metrics Dashboard Mini-summary -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="flex flex-col gap-1 rounded-xl p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <div class="flex items-center gap-2 text-[#4c6c9a] mb-1">
+                            <span class="material-symbols-outlined text-lg">timer</span>
+                            <p class="text-sm font-medium">Total Cycle Time</p>
+                        </div>
+                        <p class="text-[#0d131b] dark:text-white text-3xl font-bold tracking-tight" id="totalCycleTime">0 <span class="text-sm font-normal text-slate-400 uppercase">sec</span></p>
+                    </div>
+                    <div class="flex flex-col gap-1 rounded-xl p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <div class="flex items-center gap-2 text-[#4c6c9a] mb-1">
+                            <span class="material-symbols-outlined text-lg">history</span>
+                            <p class="text-sm font-medium">Total Lead Time</p>
+                        </div>
+                        <p class="text-[#0d131b] dark:text-white text-3xl font-bold tracking-tight" id="totalLeadTime">0 <span class="text-sm font-normal text-slate-400 uppercase">hrs</span></p>
+                    </div>
+                    <div class="flex flex-col gap-1 rounded-xl p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <div class="flex items-center gap-2 text-[#4c6c9a] mb-1">
+                            <span class="material-symbols-outlined text-lg">format_list_numbered</span>
+                            <p class="text-sm font-medium">Process Steps</p>
+                        </div>
+                        <p class="text-[#0d131b] dark:text-white text-3xl font-bold tracking-tight" id="processSteps">0 <span class="text-sm font-normal text-slate-400 uppercase">steps</span></p>
+                    </div>
+                </div>
+                
+                <!-- Process Steps List -->
+                <div class="mb-8 p-6 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
+                    <h2 class="text-2xl font-semibold text-gray-800 dark:text-white mb-4 flex items-center">
+                        <span class="material-symbols-outlined mr-2">build</span>
+                        Machine Configuration
+                    </h2>
+                    
+                    <!-- Table Header -->
+                    <div class="grid grid-cols-12 gap-2 px-2 py-3 text-[10px] font-bold uppercase tracking-wider text-[#4c6c9a] bg-slate-50 dark:bg-slate-900/50 rounded-t-lg border-b border-slate-200 dark:border-slate-700/50">
+                        <!-- Step # -->
+                        <div class="col-span-1 flex items-center justify-center">
+                            <span class="text-xs">#</span>
+                        </div>
+                        
+                        <!-- Process Name -->
+                        <div class="col-span-2 flex items-center px-1">
+                            <span class="material-symbols-outlined text-xs mr-1.5 opacity-70">list_alt</span>
+                            <span class="whitespace-nowrap">Process Name</span>
+                        </div>
+                        
+                        <!-- Time Metrics -->
+                        <div class="col-span-3 grid grid-cols-3 gap-0.5">
+                            <div class="flex flex-col items-center justify-center px-0.5">
+                                <span class="text-[9px] text-slate-400">Hours/day</span>
+                                <span class="text-[9px] whitespace-nowrap">Available</span>
+                            </div>
+                            <div class="flex flex-col items-center justify-center px-0.5">
+                                <span class="text-[9px] text-slate-400">Time (sec)</span>
+                                <span class="text-[9px] whitespace-nowrap">Total</span>
+                            </div>
+                            <div class="flex flex-col items-center justify-center px-0.5">
+                                <span class="text-[9px] text-slate-400">Time (sec)</span>
+                                <span class="text-[9px] whitespace-nowrap">3 Months</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Quality Metrics -->
+                        <div class="col-span-3 grid grid-cols-3 gap-0.5">
+                            <div class="flex flex-col items-center justify-center px-0.5">
+                                <span class="material-symbols-outlined text-xs mb-0.5 opacity-70">replay</span>
+                                <span class="text-[9px] whitespace-nowrap">Rework %</span>
+                            </div>
+                            <div class="flex flex-col items-center justify-center px-0.5">
+                                <span class="material-symbols-outlined text-xs mb-0.5 opacity-70">block</span>
+                                <span class="text-[9px] whitespace-nowrap">Rejection %</span>
+                            </div>
+                            <div class="flex flex-col items-center justify-center px-0.5">
+                                <span class="material-symbols-outlined text-xs mb-0.5 opacity-70">engineering</span>
+                                <span class="text-[9px] whitespace-nowrap">Breakdown %</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Changeover Metrics -->
+                        <div class="col-span-2 grid grid-cols-3 gap-0.5">
+                            <div class="flex flex-col items-center justify-center px-0.5">
+                                <span class="text-[9px] text-slate-400">Avg</span>
+                                <span class="text-[9px] whitespace-nowrap leading-tight">Changeover (min)</span>
+                            </div>
+                            <div class="flex flex-col items-center justify-center px-0.5">
+                                <span class="text-[9px] text-slate-400">Count</span>
+                                <span class="text-[9px] whitespace-nowrap leading-tight">Per Month</span>
+                            </div>
+                            <div class="flex flex-col items-center justify-center px-0.5">
+                                <span class="text-[9px] text-slate-400">Total</span>
+                                <span class="text-[9px] whitespace-nowrap leading-tight">Changeover</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Final Metrics -->
+                        <div class="col-span-1 grid grid-cols-3 gap-0.5">
+                            <div class="flex flex-col items-center justify-center px-0.5">
+                                <span class="material-symbols-outlined text-xs mb-0.5 opacity-70">timer</span>
+                                <span class="text-[9px] whitespace-nowrap">Cycle (sec)</span>
+                            </div>
+                            <div class="flex flex-col items-center justify-center px-0.5">
+                                <span class="material-symbols-outlined text-xs mb-0.5 opacity-70">person</span>
+                                <span class="text-[9px] whitespace-nowrap">Operators</span>
+                            </div>
+                            <div class="flex flex-col items-center justify-center px-0.5">
+                                <span class="material-symbols-outlined text-xs mb-0.5 opacity-70">Settings</span>
+                                <span class="text-[9px] whitespace-nowrap">Actions</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Table Body Container -->
+                    <div id="machinesTableBody">
+                        <!-- Dynamic content will be loaded here -->
+                    </div>
+                    
+                    <!-- Add Step Button -->
+                    <button onclick="addMachineRow()" class="w-full border-2 border-dashed border-slate-300 dark:border-slate-700 rounded py-5 flex flex-col items-center justify-center text-slate-400 hover:border-primary hover:text-primary transition-all group mt-1">
+                        <span class="material-symbols-outlined text-2xl mb-1.5 group-hover:scale-110 transition-transform">add_circle</span>
+                        <span class="font-semibold text-sm">Add New Step</span>
+                        <span class="text-xs">Add new process step</span>
+                    </button>
+                </div>
+                
+                <!-- Process Flow Connections -->
+                <div class="mb-8 p-6 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
+                    <h2 class="text-2xl font-semibold text-gray-800 dark:text-white mb-4 flex items-center">
+                        <span class="material-symbols-outlined mr-2">🔗</span>
+                        Process Flow Connections
+                    </h2>
+                    
+                    <!-- Connection Header -->
+                    <div class="grid grid-cols-12 gap-2 px-2 py-3 text-[10px] font-bold uppercase tracking-wider text-[#4c6c9a] bg-slate-50 dark:bg-slate-900/50 rounded-t-lg border-b border-slate-200 dark:border-slate-700/50 mb-2">
+                        <div class="col-span-1 flex items-center justify-center">
+                            <span class="text-xs">#</span>
+                        </div>
+                        <div class="col-span-3 flex items-center px-2">
+                            <span class="material-symbols-outlined text-xs mr-1.5 opacity-70">arrow_right_alt</span>
+                            <span>From Process</span>
+                        </div>
+                        <div class="col-span-3 flex items-center px-2">
+                            <span class="material-symbols-outlined text-xs mr-1.5 opacity-70">arrow_left_alt</span>
+                            <span>To Process</span>
+                        </div>
+                        <div class="col-span-3 flex items-center px-2">
+                            <span class="material-symbols-outlined text-xs mr-1.5 opacity-70">inventory_2</span>
+                            <span>Inventory Buffer (Days)</span>
+                        </div>
+                        <div class="col-span-2 flex items-center justify-center px-2">
+                            <span class="material-symbols-outlined text-xs mr-1.5 opacity-70">settings</span>
+                            <span>Actions</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Connections Container -->
+                    <div id="connectionsContainer">
+                        <!-- Dynamic content will be loaded here -->
+                    </div>
+                    
+                    <!-- Add Connection Button -->
+                    <button onclick="addConnection()" class="w-full border-2 border-dashed border-slate-300 dark:border-slate-700 rounded py-4 flex flex-col items-center justify-center text-slate-400 hover:border-primary hover:text-primary transition-all group mt-2">
+                        <span class="material-symbols-outlined text-xl mb-1.5 group-hover:scale-110 transition-transform">add_link</span>
+                        <span class="font-semibold text-sm">Add New Connection</span>
+                        <span class="text-xs">Connect process steps</span>
+                    </button>
+                </div>
+            </main>
+        </div>
+        
+        <!-- Sticky Footer Calculation Summary -->
+        <footer class="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-10 py-4 flex items-center justify-between z-50">
+            <div class="flex items-center gap-8">
+                <div class="flex flex-col">
+                    <span class="text-[10px] uppercase font-black text-slate-400 tracking-widest">Total Steps</span>
+                    <div class="flex items-center gap-2 text-green-500">
+                        <span class="material-symbols-outlined text-sm">check_circle</span>
+                        <span class="text-sm font-bold" id="totalStepsCount">0</span>
+                    </div>
+                </div>
+                <div class="h-8 w-px bg-slate-200 dark:bg-slate-700"></div>
+                <div class="flex gap-10">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] uppercase font-black text-slate-400 tracking-widest">Total Cycle Time</span>
+                        <span class="text-lg font-bold text-primary" id="footerCycleTime">0 sec</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] uppercase font-black text-slate-400 tracking-widest">Total Lead Time</span>
+                        <span class="text-lg font-bold" id="footerLeadTime">0 hrs <span class="text-xs text-slate-500"></span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="resetAll()" class="px-6 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">Reset All</button>
+                <button onclick="generateVSM()" class="px-8 py-2.5 bg-primary text-white rounded-lg font-bold shadow-lg shadow-primary/25 hover:translate-y-[-1px] transition-all">Generate Current State</button>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Application state
+        const state = {
+            machines: [],
+            connections: [],
+            workingDays: 24,
+            monthlyRate: 10000
+        };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up Excel import button
+            document.getElementById('importExcelBtn').addEventListener('click', function() {
+                document.getElementById('excelFileInput').click();
+            });
+            
+            // Load initial empty state
+            loadInitialState();
+            updateMetrics();
+        });
+
+        // Load initial empty state
+        function loadInitialState() {
+            // Add initial machine row
+            addMachineRow();
+            // Add initial connection row
+            addConnection();
+        }
+
+        // Excel file upload handler
+        function handleExcelUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                    
+                    // Clear existing machines
+                    state.machines = [];
+                    
+                    // Skip header row (row 0) and process data
+                    for (let i = 1; i < jsonData.length; i++) {
+                        const row = jsonData[i];
+                        if (row && row.length > 0) {
+                            const machine = {
+                                name: row[0] || `Machine ${i}`,
+                                hours: row[1] || 0,
+                                totalTime: row[2] || 0,
+                                threeMonthsTime: row[3] || 0,
+                                rework: row[4] || 0,
+                                rejection: row[5] || 0,
+                                breakdown: row[6] || 0,
+                                avgChangeover: row[7] || 0,
+                                changeoverCount: row[8] || 0,
+                                totalChangeover: row[9] || 0,
+                                cycleTime: row[10] || 0,
+                                operators: row[11] || 1,
+                                inventory: row[12] || 0
+                            };
+                            state.machines.push(machine);
+                        }
+                    }
+                    
+                    // Render machines table
+                    renderMachinesTable();
+                    updateMetrics();
+                    
+                    // Update connections dropdowns
+                    updateConnectionOptions();
+                    
+                    alert(`Successfully imported ${state.machines.length} machines from Excel file.`);
+                } catch (error) {
+                    console.error('Error reading Excel file:', error);
+                    alert('Error reading Excel file. Please check the file format.');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Render machines table
+        function renderMachinesTable() {
+            const container = document.getElementById('machinesTableBody');
+            container.innerHTML = '';
+            
+            state.machines.forEach((machine, index) => {
+                const row = document.createElement('div');
+                row.className = `
+                grid grid-cols-12 items-center
+                bg-white dark:bg-slate-800
+                border border-slate-200 dark:border-slate-700
+                rounded hover:shadow-sm transition-shadow
+                text-sm mb-2
+                h-14
+                `;
+                row.innerHTML = `
+                    <!-- Step # -->
+                    <div class="col-span-1 flex items-center justify-center py-3">
+                        <span class="flex items-center justify-center size-6 rounded-full bg-primary text-white text-[10px] font-bold">${index + 1}</span>
+                    </div>
+                    
+                    <!-- Process Name -->
+                    <div class="col-span-2 px-3 py-3">
+                        <input class="w-full bg-transparent border-none p-0 text-[#0d131b] dark:text-white font-semibold text-sm focus:ring-0 placeholder:text-slate-400" 
+                               type="text" 
+                               value="${machine.name || ''}"
+                               placeholder="Process name"
+                               onchange="updateMachine(${index}, 'name', this.value)"/>
+                    </div>
+                    
+                    <!-- Time Metrics -->
+                    <div class="col-span-3 grid grid-cols-3 gap-1 px-1 items-center justify-items-center">
+                        <div class="flex items-center justify-center">
+                            <input class="w-14 text-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-sm font-medium focus:ring-1 focus:ring-primary focus:border-primary p-1.5" 
+                                   type="number" 
+                                   value="${machine.hours || 0}"
+                                   placeholder="0"
+                                   onchange="updateMachine(${index}, 'hours', this.value)"/>
+                        </div>
+                        <div class="w-14 text-center">${machine.totalTime || 0}</div>
+                        <div class="w-14 text-center">${machine.threeMonthsTime || 0}</div>
+                    </div>
+                    
+                    <!-- Quality Metrics -->
+                    <div class="col-span-3 grid grid-cols-3 gap-1 px-1 items-center justify-items-center">
+                        <div class="flex items-center justify-center">
+                            <input class="w-14 text-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-sm font-medium focus:ring-1 focus:ring-primary focus:border-primary p-1.5" 
+                                   type="number" 
+                                   value="${machine.rework || 0}"
+                                   placeholder="0.0" 
+                                   step="0.1" 
+                                   min="0" 
+                                   max="100"
+                                   onchange="updateMachine(${index}, 'rework', this.value)"/>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <input class="w-14 text-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-sm font-medium focus:ring-1 focus:ring-primary focus:border-primary p-1.5" 
+                                   type="number" 
+                                   value="${machine.rejection || 0}"
+                                   placeholder="0.0" 
+                                   step="0.1" 
+                                   min="0" 
+                                   max="100"
+                                   onchange="updateMachine(${index}, 'rejection', this.value)"/>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <input class="w-14 text-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-sm font-medium focus:ring-1 focus:ring-primary focus:border-primary p-1.5" 
+                                   type="number" 
+                                   value="${machine.breakdown || 0}"
+                                   placeholder="0.0" 
+                                   step="0.1" 
+                                   min="0" 
+                                   max="100"
+                                   onchange="updateMachine(${index}, 'breakdown', this.value)"/>
+                        </div>
+                    </div>
+                    
+                    <!-- Changeover Metrics -->
+                    <div class="col-span-2 grid grid-cols-3 gap-1 px-1 items-center justify-items-center">
+                        <div class="flex items-center justify-center">
+                            <input class="w-14 text-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-sm font-medium focus:ring-1 focus:ring-primary focus:border-primary p-1.5" 
+                                   type="number" 
+                                   value="${machine.avgChangeover || 0}"
+                                   placeholder="0"
+                                   onchange="updateMachine(${index}, 'avgChangeover', this.value); calculateTotalChangeover(${index})"/>
+                        </div>
+                        <div class="flex items-center justify-center">
+                            ${machine.changeoverCount || 0}
+                        </div>
+                        <div class="flex items-center justify-center">
+                            <input class="w-14 text-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-sm font-medium focus:ring-1 focus:ring-primary focus:border-primary p-1.5" 
+                                   type="number" 
+                                   value="${machine.totalChangeover || 0}"
+                                   placeholder="0"
+                                   readonly/>
+                        </div>
+                    </div>
+                    
+                    <!-- Final Metrics -->
+                    <div class="col-span-1 grid grid-cols-3 gap-1 px-1 items-center">
+
+                        <!-- Cycle Time -->
+                        <div class="flex items-center justify-center">
+                            <input class="w-14 text-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-sm font-medium focus:ring-1 focus:ring-primary focus:border-primary p-1.5" 
+                                type="number" 
+                                value="${machine.cycleTime || 0}"
+                                placeholder="0"
+                                onchange="updateMachine(${index}, 'cycleTime', this.value); updateMetrics()"/>
+                        </div>
+
+                        <!-- Operators -->
+                        <div class="flex items-center justify-center">
+                            <div class="flex items-center gap-0.5">
+                                <button class="size-5 rounded border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100 flex items-center justify-center text-[10px]"
+                                        onclick="updateOperators(${index}, -1)">-</button>
+
+                                <span class="w-5 text-center font-medium text-sm">${machine.operators || 1}</span>
+
+                                <button class="size-5 rounded border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100 flex items-center justify-center text-[10px]"
+                                        onclick="updateOperators(${index}, 1)">+</button>
+                            </div>
+                        </div>
+
+                        <!-- Delete Action -->
+                        <div class="flex items-center justify-center">
+                            <button class="size-6 rounded border border-slate-200 dark:border-slate-700 text-red-500 hover:bg-red-50 hover:text-red-600 flex items-center justify-center"
+                                    title="Delete Step"
+                                    onclick="deleteMachine(${index})">
+                                <span class="material-symbols-outlined text-[14px]">delete</span>
+                            </button>
+                        </div>
+
+                    </div>
+
+                `;
+                container.appendChild(row);
+            });
+            
+            // Update metrics
+            updateMetrics();
+        }
+
+        // Update machine property
+        function updateMachine(index, property, value) {
+            if (state.machines[index]) {
+                state.machines[index][property] = parseFloat(value) || 0;
+            }
+        }
+
+        // Calculate total changeover time
+        function calculateTotalChangeover(index) {
+            if (state.machines[index]) {
+                const machine = state.machines[index];
+                machine.totalChangeover = (machine.avgChangeover || 0) * (machine.changeoverCount || 0);
+                renderMachinesTable(); // Re-render to show updated value
+            }
+        }
+
+        // Update operators count
+        function updateOperators(index, change) {
+            if (state.machines[index]) {
+                const current = parseInt(state.machines[index].operators) || 1;
+                const newValue = Math.max(1, current + change);
+                state.machines[index].operators = newValue;
+                renderMachinesTable();
+            }
+        }
+
+        // Add new machine row
+        function addMachineRow() {
+            state.machines.push({
+                name: '',
+                hours: 0,
+                totalTime: 0,
+                threeMonthsTime: 0,
+                rework: 0,
+                rejection: 0,
+                breakdown: 0,
+                avgChangeover: 0,
+                changeoverCount: 0,
+                totalChangeover: 0,
+                cycleTime: 0,
+                operators: 1,
+                inventory: 0
+            });
+            renderMachinesTable();
+            updateConnectionOptions();
+        }
+
+        // Update connection options dropdown
+        function updateConnectionOptions() {
+            const connectionRows = document.querySelectorAll('#connectionsContainer .connection-row');
+            connectionRows.forEach(row => {
+                const fromSelect = row.querySelector('.from-process');
+                const toSelect = row.querySelector('.to-process');
+                
+                if (fromSelect) {
+                    fromSelect.innerHTML = `<option value="">Select Process</option>` +
+                        state.machines.map((machine, index) => 
+                            `<option value="${index}">${machine.name || 'Process ' + (index + 1)}</option>`
+                        ).join('');
+                }
+                
+                if (toSelect) {
+                    toSelect.innerHTML = `<option value="">Select Process</option>` +
+                        state.machines.map((machine, index) => 
+                            `<option value="${index}">${machine.name || 'Process ' + (index + 1)}</option>`
+                        ).join('');
+                }
+            });
+        }
+
+        // Render connections
+        function renderConnections() {
+            const container = document.getElementById('connectionsContainer');
+            container.innerHTML = '';
+            
+            state.connections.forEach((connection, index) => {
+                const row = document.createElement('div');
+                row.className = `grid grid-cols-12 items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded mb-2 hover:shadow-sm transition-shadow text-sm connection-row`;
+                row.innerHTML = `
+                    <div class="col-span-1 flex items-center justify-center py-3">
+                        <span class="flex items-center justify-center size-6 rounded-full bg-primary text-white text-[10px] font-bold">${index + 1}</span>
+                    </div>
+                    
+                    <div class="col-span-3 px-3 py-3">
+                        <select class="w-full from-process bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-sm font-medium focus:ring-1 focus:ring-primary focus:border-primary p-2"
+                                onchange="updateConnection(${index}, 'from', this.value)">
+                            <option value="">Select Process</option>
+                            ${state.machines.map((machine, idx) => 
+                                `<option value="${idx}" ${connection.from === idx ? 'selected' : ''}>
+                                    ${machine.name || 'Process ' + (idx + 1)}
+                                </option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    
+                    <div class="col-span-3 px-3 py-3">
+                        <select class="w-full to-process bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-sm font-medium focus:ring-1 focus:ring-primary focus:border-primary p-2"
+                                onchange="updateConnection(${index}, 'to', this.value)">
+                            <option value="">Select Process</option>
+                            ${state.machines.map((machine, idx) => 
+                                `<option value="${idx}" ${connection.to === idx ? 'selected' : ''}>
+                                    ${machine.name || 'Process ' + (idx + 1)}
+                                </option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    
+                    <div class="col-span-3 px-3 py-3">
+                        <div class="flex items-center gap-2">
+                            <input class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-sm font-medium focus:ring-1 focus:ring-primary focus:border-primary p-2" 
+                                   type="number" 
+                                   placeholder="0" 
+                                   min="0" 
+                                   step="0.5"
+                                   value="${connection.inventoryDays || 0}"
+                                   onchange="updateConnection(${index}, 'inventoryDays', this.value); updateMetrics()"/>
+                            <span class="text-xs text-slate-500 whitespace-nowrap">days</span>
+                        </div>
+                    </div>
+                    
+                    <div class="col-span-2 px-3 py-3">
+                        <div class="flex items-center justify-center gap-2">
+                            <button class="size-7 rounded border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100 hover:text-red-600 flex items-center justify-center"
+                                    onclick="deleteConnection(${index})">
+                                <span class="material-symbols-outlined text-sm">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+            
+            updateMetrics();
+        }
+
+        // Add new connection
+        function addConnection() {
+            state.connections.push({
+                from: '',
+                to: '',
+                inventoryDays: 0
+            });
+            renderConnections();
+        }
+
+        // Update connection
+        function updateConnection(index, property, value) {
+            if (state.connections[index]) {
+                if (property === 'inventoryDays') {
+                    state.connections[index][property] = parseFloat(value) || 0;
+                } else {
+                    state.connections[index][property] = parseInt(value) || '';
+                }
+            }
+        }
+
+        // Duplicate connection
+        function duplicateConnection(index) {
+            if (state.connections[index]) {
+                const connection = {...state.connections[index]};
+                state.connections.push(connection);
+                renderConnections();
+            }
+        }
+        function deleteMachine(index) {
+        if (!confirm('Delete this process step?')) return;
+
+        // Remove machine
+        state.machines.splice(index, 1);
+
+        // Remove related connections
+        state.connections = state.connections.filter(
+            c => c.from !== index && c.to !== index
+        );
+
+        // Re-index remaining connections
+        state.connections.forEach(c => {
+            if (c.from > index) c.from--;
+            if (c.to > index) c.to--;
+        });
+
+        renderMachinesTable();
+        renderConnections();
+        updateConnectionOptions();
+        updateMetrics();
+    }
+
+
+        // Delete connection
+        function deleteConnection(index) {
+            state.connections.splice(index, 1);
+            renderConnections();
+        }
+
+        // Update all metrics
+        function updateMetrics() {
+            // Calculate total cycle time
+            const totalCycleTime = state.machines.reduce((sum, machine) => sum + (parseFloat(machine.cycleTime) || 0), 0);
+            
+            // Calculate total lead time (sum of inventory days from connections)
+            const totalLeadTime = state.connections.reduce((sum, conn) => sum + (parseFloat(conn.inventoryDays) || 0), 0);
+            
+            // Update display
+            document.getElementById('totalCycleTime').textContent = `${totalCycleTime.toFixed(1)} sec`;
+            document.getElementById('totalLeadTime').textContent = `${totalLeadTime.toFixed(1)} hrs`;
+            document.getElementById('processSteps').textContent = `${state.machines.length} steps`;
+            
+            // Update footer
+            document.getElementById('totalStepsCount').textContent = state.machines.length;
+            document.getElementById('footerCycleTime').textContent = `${totalCycleTime.toFixed(1)} sec`;
+            document.getElementById('footerLeadTime').textContent = `${totalLeadTime.toFixed(1)} hrs`;
+        }
+
+        // Reset all data
+        function resetAll() {
+            if (confirm('Are you sure you want to reset all data? This cannot be undone.')) {
+                state.machines = [];
+                state.connections = [];
+                loadInitialState();
+                updateMetrics();
+            }
+        }
+
+        // Generate VSM (placeholder function)
+        function generateVSM() {
+            // Check if we have data
+            if (state.machines.length === 0) {
+                alert('Please add at least one process step before generating VSM.');
+                return;
+            }
+            
+            // Check if all machines have names
+            const unnamedMachines = state.machines.filter(m => !m.name.trim());
+            if (unnamedMachines.length > 0) {
+                alert('Please name all process steps before generating VSM.');
+                return;
+            }
+            
+            // Calculate metrics
+            const totalCycleTime = state.machines.reduce((sum, m) => sum + (parseFloat(m.cycleTime) || 0), 0);
+            const totalLeadTime = state.connections.reduce((sum, c) => sum + (parseFloat(c.inventoryDays) || 0), 0);
+            const valueAddedRatio = totalLeadTime > 0 ? 
+                (totalCycleTime / (totalCycleTime + (totalLeadTime * 3600))) * 100 : 100;
+            
+            // Show summary
+            alert(`VSM Generation Complete!\n\n` +
+                  `Total Process Steps: ${state.machines.length}\n` +
+                  `Total Cycle Time: ${totalCycleTime.toFixed(1)} seconds\n` +
+                  `Total Lead Time: ${totalLeadTime.toFixed(1)} hours\n` +
+                  `Value-Added Ratio: ${valueAddedRatio.toFixed(1)}%\n\n` +
+                  `(In a real application, this would open a visual VSM diagram)`);
+            
+            // Here you would typically:
+            // 1. Open a modal with the VSM visualization
+            // 2. Generate an SVG/Canvas diagram
+            // 3. Export to PDF/Image
+        }
+    </script>
+</body>
+</html>

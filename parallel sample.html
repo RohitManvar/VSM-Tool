@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Current Stream Mapping</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        /* Custom styles for the SVG canvas */
+        .node-machine {
+            filter: drop-shadow(2px 4px 6px rgba(102, 126, 234, 0.2));
+        }
+        
+        .node-inventory {
+            filter: drop-shadow(2px 4px 6px rgba(245, 158, 11, 0.2));
+        }
+        
+        .modal-content {
+            scrollbar-width: thin;
+            scrollbar-color: #667eea #f3f4f6;
+        }
+        
+        .modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .modal-content::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            border-radius: 4px;
+        }
+        
+        .modal-content::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+        
+        .table-container {
+            scrollbar-width: thin;
+            scrollbar-color: #667eea #f3f4f6;
+        }
+        
+        .table-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .table-container::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            border-radius: 4px;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+        
+        .input:focus, .select:focus {
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        /* Arrow markers for SVG */
+        .arrow-marker {
+            fill: #667eea;
+        }
+        
+        .info-arrow-marker {
+            fill: #9333ea;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 p-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-white mb-2 drop-shadow-lg">Dynamic Current Stream Mapping</h1>
+            <p class="text-lg text-indigo-100">Visualize and optimize your production process flow</p>
+        </div>
+
+        <!-- Main Container -->
+        <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-8">
+            <!-- Industry Information Section -->
+            <div class="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <span class="material-icons mr-2">🏭</span>
+                    Industry Information
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div>
+                        <input type="text" id="industryName" 
+                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition"
+                               placeholder="Industry Name">
+                    </div>
+                    <div>
+                        <input type="text" id="productionLine" 
+                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition"
+                               placeholder="Production Line Names">
+                    </div>
+                    <div>
+                        <input type="number" id="workingDays" 
+                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition"
+                               placeholder="Working Days per Month">
+                    </div>
+                    <div>
+                        <input type="number" id="monthlyRate" 
+                               class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition"
+                               placeholder="Monthly Production Rate">
+                    </div>
+                </div>
+                
+                <div id="dailyProductionCard" class="hidden bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-xl text-center">
+                    <p class="text-sm opacity-90 mb-2">Daily Production Target</p>
+                    <p id="dailyProductionValue" class="text-3xl font-bold">0 units</p>
+                </div>
+            </div>
+
+            <!-- Shift Breaks Section -->
+            <div class="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <span class="material-icons mr-2">⏰</span>
+                    Shift Breaks
+                </h2>
+                
+                <div id="breaksContainer">
+                    <!-- Breaks will be added here dynamically -->
+                    <div class="flex items-center gap-4 mb-3">
+                        <span class="font-semibold text-gray-600 w-20">Shift 1</span>
+                        <input type="number" class="lunch-break px-4 py-2 border-2 border-gray-200 rounded-lg w-40" placeholder="Lunch/Dinner (min)">
+                        <input type="number" class="tea-break px-4 py-2 border-2 border-gray-200 rounded-lg w-40" placeholder="Tea (min)">
+                    </div>
+                </div>
+                
+                <button onclick="addShift()" 
+                        class="mt-4 px-6 py-2 bg-white text-indigo-600 border-2 border-indigo-500 rounded-lg font-semibold hover:bg-indigo-500 hover:text-white transition">
+                    + Add Shift
+                </button>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                    <div class="bg-white border-2 border-indigo-500 p-4 rounded-lg text-center">
+                        <p class="text-sm text-gray-600 mb-2">Total Break Time</p>
+                        <p id="totalBreakTime" class="text-2xl font-bold text-indigo-600">0 min</p>
+                    </div>
+                    <div class="bg-white border-2 border-indigo-500 p-4 rounded-lg text-center">
+                        <p class="text-sm text-gray-600 mb-2">Available Time</p>
+                        <p id="totalAvailableTime" class="text-2xl font-bold text-indigo-600">0 sec</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Machine Configuration Section -->
+            <div class="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <span class="material-icons mr-2">⚙️</span>
+                    Machine Configuration
+                </h2>
+                
+                <div class="table-container overflow-x-auto mb-6 rounded-lg border border-gray-200">
+                    <table class="w-full bg-white">
+                        <thead>
+                            <tr class="bg-indigo-600 text-white">
+                                <th class="p-3 text-left font-semibold text-sm">#</th>
+                                <th class="p-3 text-left font-semibold text-sm">Machine Name</th>
+                                <th class="p-3 text-left font-semibold text-sm">Avail. Hours/Day</th>
+                                <th class="p-3 text-left font-semibold text-sm">Total Time (sec)</th>
+                                <th class="p-3 text-left font-semibold text-sm">3 Mo. Time (sec)</th>
+                                <th class="p-3 text-left font-semibold text-sm">Rework %</th>
+                                <th class="p-3 text-left font-semibold text-sm">Rejection %</th>
+                                <th class="p-3 text-left font-semibold text-sm">Breakdown %</th>
+                                <th class="p-3 text-left font-semibold text-sm">Avg Change (min)</th>
+                                <th class="p-3 text-left font-semibold text-sm">Changes/Mo</th>
+                                <th class="p-3 text-left font-semibold text-sm">Total Change (min)</th>
+                                <th class="p-3 text-left font-semibold text-sm">Cycle Time (sec)</th>
+                                <th class="p-3 text-left font-semibold text-sm">Operators</th>
+                            </tr>
+                        </thead>
+                        <tbody id="machinesTableBody">
+                            <!-- Machines will be added here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="flex flex-wrap gap-4">
+                    <button onclick="addMachine()" 
+                            class="px-6 py-2 bg-white text-indigo-600 border-2 border-indigo-500 rounded-lg font-semibold hover:bg-indigo-500 hover:text-white transition">
+                        + Add Machine
+                    </button>
+                    
+                    <div class="flex-1 p-4 bg-blue-50 rounded-lg border-2 border-dashed border-blue-300">
+                        <label class="block font-semibold text-blue-700 mb-2">Upload Machine Data from Excel</label>
+                        <input type="file" id="excelUpload" accept=".xlsx,.xls" 
+                               class="w-full px-4 py-2 border border-blue-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                               onchange="handleExcelUpload(event)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Process Flow Connections -->
+            <div class="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <span class="material-icons mr-2">🔗</span>
+                    Process Flow Connections
+                </h2>
+                
+                <div id="connectionsContainer">
+                    <!-- Connections will be added here dynamically -->
+                </div>
+                
+                <button onclick="addConnection()" 
+                        class="mt-4 px-6 py-2 bg-white text-indigo-600 border-2 border-indigo-500 rounded-lg font-semibold hover:bg-indigo-500 hover:text-white transition">
+                    + Add Connection
+                </button>
+            </div>
+
+            <!-- Generate VSM Button -->
+            <button onclick="generateVSM()" 
+                    class="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg font-bold text-lg hover:opacity-90 transition transform hover:-translate-y-1 shadow-lg">
+                Generate Current Stream Map
+            </button>
+        </div>
+    </div>
+
+    <!-- VSM Modal -->
+    <div id="vsmModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-95vw max-h-90vh overflow-auto">
+            <div class="sticky top-0 bg-white border-b-2 border-gray-200 p-6 flex justify-between items-center z-10">
+                <h2 class="text-2xl font-bold text-gray-800">Dynamic Current Stream Map</h2>
+                <button onclick="closeVSM()" class="w-9 h-9 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600">
+                    ✕
+                </button>
+            </div>
+            <div id="canvasWrapper" class="p-8 overflow-auto">
+                <svg id="vsmCanvas" width="1400" height="800" class="block"></svg>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let state = {
+            workingDays: '',
+            monthlyRate: '',
+            industryName: '',
+            productionLine: '',
+            breaks: [{ lunch: '', tea: '' }],
+            machines: [createMachine()],
+            connections: [{ from: '', to: '', inventoryDays: '' }],
+            showVSM: false
+        };
+
+        function createMachine() {
+            return {
+                name: '',
+                hours: '',
+                seconds: 0,
+                threeMonths: 0,
+                rework: '',
+                rejection: '',
+                breakdown: '',
+                avgChange: '',
+                changeCount: '',
+                totalChange: 0,
+                cycleTime: '',
+                inventory: '',
+                operators: ''
+            };
+        }
+
+        // Initialize UI
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeIndustryInputs();
+            renderMachinesTable();
+            renderConnections();
+            calculateAndDisplayMetrics();
+        });
+
+        function initializeIndustryInputs() {
+            document.getElementById('industryName').addEventListener('input', (e) => {
+                state.industryName = e.target.value;
+            });
+            document.getElementById('productionLine').addEventListener('input', (e) => {
+                state.productionLine = e.target.value;
+            });
+            document.getElementById('workingDays').addEventListener('input', (e) => {
+                state.workingDays = e.target.value;
+                calculateAndDisplayMetrics();
+                updateMachinesThreeMonths();
+            });
+            document.getElementById('monthlyRate').addEventListener('input', (e) => {
+                state.monthlyRate = e.target.value;
+                calculateAndDisplayMetrics();
+            });
+        }
+
+        function calculateAndDisplayMetrics() {
+            // Calculate total break time
+            const totalBreakTime = state.breaks.reduce((sum, b) => {
+                return sum + (Number(b.lunch || 0) + Number(b.tea || 0));
+            }, 0);
+            
+            document.getElementById('totalBreakTime').textContent = `${totalBreakTime} min`;
+            
+            // Calculate available time
+            const totalAvailableTime = 24 * 60 * 60 - totalBreakTime * 60;
+            document.getElementById('totalAvailableTime').textContent = totalAvailableTime.toLocaleString() + ' sec';
+            
+            // Calculate daily production
+            if (state.monthlyRate && state.workingDays) {
+                const perDayProduction = (state.monthlyRate / state.workingDays).toFixed(2);
+                document.getElementById('dailyProductionCard').classList.remove('hidden');
+                document.getElementById('dailyProductionValue').textContent = `${perDayProduction} units`;
+            } else {
+                document.getElementById('dailyProductionCard').classList.add('hidden');
+            }
+        }
+
+        // Breaks Management
+        function addShift() {
+            state.breaks.push({ lunch: '', tea: '' });
+            renderBreaks();
+        }
+
+        function renderBreaks() {
+            const container = document.getElementById('breaksContainer');
+            container.innerHTML = '';
+            
+            state.breaks.forEach((breakItem, index) => {
+                const breakDiv = document.createElement('div');
+                breakDiv.className = 'flex items-center gap-4 mb-3';
+                breakDiv.innerHTML = `
+                    <span class="font-semibold text-gray-600 w-20">Shift ${index + 1}</span>
+                    <input type="number" class="lunch-break px-4 py-2 border-2 border-gray-200 rounded-lg w-40" 
+                           placeholder="Lunch/Dinner (min)" value="${breakItem.lunch}"
+                           oninput="updateBreak(${index}, 'lunch', this.value)">
+                    <input type="number" class="tea-break px-4 py-2 border-2 border-gray-200 rounded-lg w-40" 
+                           placeholder="Tea (min)" value="${breakItem.tea}"
+                           oninput="updateBreak(${index}, 'tea', this.value)">
+                `;
+                container.appendChild(breakDiv);
+            });
+            calculateAndDisplayMetrics();
+        }
+
+        function updateBreak(index, field, value) {
+            state.breaks[index][field] = value;
+            calculateAndDisplayMetrics();
+        }
+
+        // Machines Management
+        function addMachine() {
+            state.machines.push(createMachine());
+            renderMachinesTable();
+        }
+
+        function renderMachinesTable() {
+            const tbody = document.getElementById('machinesTableBody');
+            tbody.innerHTML = '';
+            
+            state.machines.forEach((machine, index) => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="p-3 border-b border-gray-200">${index + 1}</td>
+                    <td class="p-3 border-b border-gray-200">
+                        <input type="text" class="w-full px-2 py-1 border border-gray-300 rounded" 
+                               value="${machine.name}" placeholder="Machine"
+                               oninput="updateMachine(${index}, 'name', this.value)">
+                    </td>
+                    <td class="p-3 border-b border-gray-200">
+                        <input type="number" class="w-full px-2 py-1 border border-gray-300 rounded" 
+                               value="${machine.hours}"
+                               oninput="updateMachine(${index}, 'hours', this.value)">
+                    </td>
+                    <td class="p-3 border-b border-gray-200 bg-gray-50 font-semibold text-gray-600">
+                        ${machine.seconds}
+                    </td>
+                    <td class="p-3 border-b border-gray-200 bg-gray-50 font-semibold text-gray-600">
+                        ${machine.threeMonths}
+                    </td>
+                    <td class="p-3 border-b border-gray-200">
+                        <input type="number" class="w-full px-2 py-1 border border-gray-300 rounded" 
+                               value="${machine.rework}"
+                               oninput="updateMachine(${index}, 'rework', this.value)">
+                    </td>
+                    <td class="p-3 border-b border-gray-200">
+                        <input type="number" class="w-full px-2 py-1 border border-gray-300 rounded" 
+                               value="${machine.rejection}"
+                               oninput="updateMachine(${index}, 'rejection', this.value)">
+                    </td>
+                    <td class="p-3 border-b border-gray-200">
+                        <input type="number" class="w-full px-2 py-1 border border-gray-300 rounded" 
+                               value="${machine.breakdown}"
+                               oninput="updateMachine(${index}, 'breakdown', this.value)">
+                    </td>
+                    <td class="p-3 border-b border-gray-200">
+                        <input type="number" class="w-full px-2 py-1 border border-gray-300 rounded" 
+                               value="${machine.avgChange}"
+                               oninput="updateMachine(${index}, 'avgChange', this.value)">
+                    </td>
+                    <td class="p-3 border-b border-gray-200">
+                        <input type="number" class="w-full px-2 py-1 border border-gray-300 rounded" 
+                               value="${machine.changeCount}"
+                               oninput="updateMachine(${index}, 'changeCount', this.value)">
+                    </td>
+                    <td class="p-3 border-b border-gray-200 bg-gray-50 font-semibold text-gray-600">
+                        ${machine.totalChange}
+                    </td>
+                    <td class="p-3 border-b border-gray-200">
+                        <input type="number" class="w-full px-2 py-1 border border-gray-300 rounded" 
+                               value="${machine.cycleTime}"
+                               oninput="updateMachine(${index}, 'cycleTime', this.value)">
+                    </td>
+                    <td class="p-3 border-b border-gray-200">
+                        <input type="number" class="w-full px-2 py-1 border border-gray-300 rounded" 
+                               value="${machine.operators}"
+                               oninput="updateMachine(${index}, 'operators', this.value)">
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateMachine(index, field, value) {
+            state.machines[index][field] = value;
+            
+            if (field === 'hours') {
+                const sec = value * 3600;
+                state.machines[index].seconds = sec;
+                state.machines[index].threeMonths = sec * state.workingDays * 3;
+            }
+            
+            if (field === 'avgChange' || field === 'changeCount') {
+                state.machines[index].totalChange = 
+                    (state.machines[index].avgChange || 0) * (state.machines[index].changeCount || 0);
+            }
+            
+            renderMachinesTable();
+        }
+
+        function updateMachinesThreeMonths() {
+            state.machines.forEach(machine => {
+                if (machine.hours && state.workingDays) {
+                    machine.threeMonths = machine.seconds * state.workingDays * 3;
+                }
+            });
+            renderMachinesTable();
+        }
+
+        function handleExcelUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(sheet);
+
+                const parsedMachines = rows.map(row => ({
+                    name: row['Machine Name'] || '',
+                    hours: Number(row['No of Available Hours daily'] || 0),
+                    seconds: Number(row['Total Time (sec)'] || 0),
+                    threeMonths: Number(row['Available time for last 3 months'] || 0),
+                    rework: Number(row['Rework % last 3 months'] || ''),
+                    rejection: Number(row['Rejection % last 3 months'] || ''),
+                    breakdown: Number(row['last 3 months brkdown %'] || ''),
+                    avgChange: Number(row['Avg Changeover Time (min)'] || 0),
+                    changeCount: Number(row['No of Changeover per month'] || 0),
+                    totalChange: Number(row['Total Changeover'] || 0),
+                    cycleTime: Number(row['Cycle Time (sec)'] || 0),
+                    inventory: Number(row['Inventory before operations (days)'] || 0),
+                    operators: Number(row['No. of Operators (No.)'] || 1)
+                }));
+
+                state.machines = parsedMachines;
+                renderMachinesTable();
+                renderConnections();
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Connections Management
+        function addConnection() {
+            state.connections.push({ from: '', to: '', inventoryDays: '' });
+            renderConnections();
+        }
+
+        function renderConnections() {
+            const container = document.getElementById('connectionsContainer');
+            container.innerHTML = '';
+            
+            const nodeOptions = getNodeOptions();
+            
+            state.connections.forEach((conn, index) => {
+                const connectionDiv = document.createElement('div');
+                connectionDiv.className = 'grid grid-cols-1 md:grid-cols-3 gap-3 mb-3 items-center';
+                connectionDiv.innerHTML = `
+                    <select class="select px-4 py-2 border-2 border-gray-200 rounded-lg" 
+                            onchange="updateConnection(${index}, 'from', this.value)">
+                        ${nodeOptions.map(opt => `
+                            <option value="${opt.value}" ${conn.from === opt.value ? 'selected' : ''}>
+                                ${opt.label}
+                                ${opt.type ? `<span class="ml-2 px-2 py-1 text-xs font-semibold rounded ${opt.type === 'machine' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'}">${opt.type}</span>` : ''}
+                            </option>
+                        `).join('')}
+                    </select>
+                    <select class="select px-4 py-2 border-2 border-gray-200 rounded-lg" 
+                            onchange="updateConnection(${index}, 'to', this.value)">
+                        ${nodeOptions.map(opt => `
+                            <option value="${opt.value}" ${conn.to === opt.value ? 'selected' : ''}>
+                                ${opt.label}
+                                ${opt.type ? `<span class="ml-2 px-2 py-1 text-xs font-semibold rounded ${opt.type === 'machine' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'}">${opt.type}</span>` : ''}
+                            </option>
+                        `).join('')}
+                    </select>
+                    <div class="flex gap-2">
+                        <input type="number" class="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg" 
+                               placeholder="Inv. Days" value="${conn.inventoryDays}"
+                               oninput="updateConnection(${index}, 'inventoryDays', this.value)">
+                        <button onclick="deleteConnection(${index})" 
+                                class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                            Delete
+                        </button>
+                    </div>
+                `;
+                container.appendChild(connectionDiv);
+            });
+        }
+
+        function getNodeOptions() {
+            const options = [
+                { value: '', label: '-- Select Node --', type: '' }
+            ];
+            
+            // Add machine nodes
+            state.machines.forEach((m, i) => {
+                options.push({
+                    value: `machine-${i}`,
+                    label: m.name || `Machine ${i + 1}`,
+                    type: 'machine'
+                });
+            });
+            
+            // Add inventory nodes from connections
+            const inventoryNodes = new Set();
+            state.connections.forEach(conn => {
+                if (conn.from.startsWith('inventory-') && !inventoryNodes.has(conn.from)) {
+                    inventoryNodes.add(conn.from);
+                }
+                if (conn.to.startsWith('inventory-') && !inventoryNodes.has(conn.to)) {
+                    inventoryNodes.add(conn.to);
+                }
+            });
+            
+            inventoryNodes.forEach(nodeId => {
+                options.push({
+                    value: nodeId,
+                    label: nodeId.replace('inventory-', 'Inventory '),
+                    type: 'inventory'
+                });
+            });
+            
+            return options;
+        }
+
+        function updateConnection(index, field, value) {
+            state.connections[index][field] = value;
+            renderConnections();
+        }
+
+        function deleteConnection(index) {
+            state.connections.splice(index, 1);
+            renderConnections();
+        }
+
+        // VSM Generation
+        function generateVSM() {
+            console.log('Generated VSM Data:', {
+                industryName: state.industryName,
+                productionLine: state.productionLine,
+                machines: state.machines,
+                connections: state.connections
+            });
+            
+            drawVSM();
+            document.getElementById('vsmModal').classList.remove('hidden');
+        }
+
+        function closeVSM() {
+            document.getElementById('vsmModal').classList.add('hidden');
+        }
+
+        function drawVSM() {
+            const svg = document.getElementById('vsmCanvas');
+            svg.innerHTML = '';
+            
+            // Build node graph structure
+            const graph = {
+                nodes: new Map(),
+                edges: []
+            };
+
+            // Add machine nodes
+            state.machines.forEach((m, i) => {
+                const nodeId = `machine-${i}`;
+                graph.nodes.set(nodeId, {
+                    id: nodeId,
+                    type: 'machine',
+                    data: m,
+                    index: i,
+                    x: 0,
+                    y: 0,
+                    level: 0
+                });
+            });
+
+            // Add inventory nodes from connections
+            const inventoryNodes = new Set();
+            state.connections.forEach(conn => {
+                if (conn.from.startsWith('inventory-') && !inventoryNodes.has(conn.from)) {
+                    inventoryNodes.add(conn.from);
+                    graph.nodes.set(conn.from, {
+                        id: conn.from,
+                        type: 'inventory',
+                        data: { inventory: conn.inventoryDays || 0 },
+                        x: 0,
+                        y: 0,
+                        level: 0
+                    });
+                }
+                if (conn.to.startsWith('inventory-') && !inventoryNodes.has(conn.to)) {
+                    inventoryNodes.add(conn.to);
+                    graph.nodes.set(conn.to, {
+                        id: conn.to,
+                        type: 'inventory',
+                        data: { inventory: conn.inventoryDays || 0 },
+                        x: 0,
+                        y: 0,
+                        level: 0
+                    });
+                }
+            });
+
+            // Add edges
+            state.connections.forEach(conn => {
+                if (conn.from && conn.to && graph.nodes.has(conn.from) && graph.nodes.has(conn.to)) {
+                    graph.edges.push({
+                        from: conn.from,
+                        to: conn.to,
+                        inventoryDays: conn.inventoryDays || 0
+                    });
+                }
+            });
+
+            // Calculate node levels (topological layering)
+            const nodes = Array.from(graph.nodes.values());
+            
+            // Calculate in-degrees
+            const inDegree = new Map();
+            nodes.forEach(n => inDegree.set(n.id, 0));
+            graph.edges.forEach(e => {
+                inDegree.set(e.to, (inDegree.get(e.to) || 0) + 1);
+            });
+
+            // Find start nodes (no incoming edges)
+            const queue = nodes.filter(n => inDegree.get(n.id) === 0);
+            if (queue.length === 0 && nodes.length > 0) {
+                queue.push(nodes[0]);
+            }
+
+            // BFS to assign levels
+            const visited = new Set();
+            let currentLevel = 0;
+            
+            while (queue.length > 0) {
+                const levelSize = queue.length;
+                for (let i = 0; i < levelSize; i++) {
+                    const node = queue.shift();
+                    if (visited.has(node.id)) continue;
+                    
+                    visited.add(node.id);
+                    node.level = currentLevel;
+
+                    // Add children
+                    graph.edges
+                        .filter(e => e.from === node.id)
+                        .forEach(e => {
+                            const childNode = graph.nodes.get(e.to);
+                            if (childNode && !visited.has(childNode.id)) {
+                                queue.push(childNode);
+                            }
+                        });
+                }
+                currentLevel++;
+            }
+
+            // Group nodes by level
+            const levelGroups = new Map();
+            nodes.forEach(n => {
+                if (!levelGroups.has(n.level)) {
+                    levelGroups.set(n.level, []);
+                }
+                levelGroups.get(n.level).push(n);
+            });
+
+            // Assign positions
+            const levelGap = 280;
+            const nodeGap = 200;
+            const startX = 220;
+            const baseY = 280;
+
+            levelGroups.forEach((levelNodes, level) => {
+                const x = startX + level * levelGap;
+                const totalHeight = levelNodes.length * nodeGap;
+                const startY = baseY - totalHeight / 2 + nodeGap / 2;
+
+                levelNodes.forEach((node, i) => {
+                    node.x = x;
+                    node.y = startY + i * nodeGap;
+                });
+            });
+
+            // Calculate metrics
+            const totalCycleTime = state.machines.reduce((sum, m) => sum + Number(m.cycleTime || 0), 0);
+            const totalLeadTime = state.connections.reduce((sum, c) => sum + Number(c.inventoryDays || 0), 0);
+            const totalWaitSeconds = totalLeadTime * 24 * 3600;
+            const valueAddedRatio = totalWaitSeconds > 0 
+                ? ((totalCycleTime / (totalCycleTime + totalWaitSeconds)) * 100).toFixed(2)
+                : "100.00";
+
+            // Set SVG dimensions
+            const svgWidth = Math.max(1400, nodes.reduce((max, n) => Math.max(max, n.x), 0) + 400);
+            const svgHeight = Math.max(800, nodes.reduce((max, n) => Math.max(max, n.y), 0) + 300);
+            
+            svg.setAttribute('width', svgWidth);
+            svg.setAttribute('height', svgHeight);
+
+            // Add defs for arrow markers
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            const arrowMarker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+            arrowMarker.setAttribute('id', 'arrow');
+            arrowMarker.setAttribute('markerWidth', '10');
+            arrowMarker.setAttribute('markerHeight', '10');
+            arrowMarker.setAttribute('refX', '6');
+            arrowMarker.setAttribute('refY', '3');
+            arrowMarker.setAttribute('orient', 'auto');
+            
+            const arrowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            arrowPath.setAttribute('d', 'M0,0 L6,3 L0,6 Z');
+            arrowPath.setAttribute('fill', '#667eea');
+            arrowMarker.appendChild(arrowPath);
+            defs.appendChild(arrowMarker);
+            svg.appendChild(defs);
+
+            // Render edges
+            graph.edges.forEach((edge, i) => {
+                const fromNode = graph.nodes.get(edge.from);
+                const toNode = graph.nodes.get(edge.to);
+                if (!fromNode || !toNode) return;
+
+                const x1 = fromNode.x + (fromNode.type === 'machine' ? 200 : 60);
+                const y1 = fromNode.y + (fromNode.type === 'machine' ? 75 : 20);
+                const x2 = toNode.x;
+                const y2 = toNode.y + (toNode.type === 'machine' ? 75 : 20);
+
+                // Create line
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x1);
+                line.setAttribute('y1', y1);
+                line.setAttribute('x2', x2);
+                line.setAttribute('y2', y2);
+                line.setAttribute('stroke', '#667eea');
+                line.setAttribute('stroke-width', '2.5');
+                line.setAttribute('marker-end', 'url(#arrow)');
+                svg.appendChild(line);
+
+                // Add inventory days label
+                if (edge.inventoryDays > 0) {
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', (x1 + x2) / 2);
+                    text.setAttribute('y', (y1 + y2) / 2 - 10);
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('font-size', '11');
+                    text.setAttribute('font-weight', '600');
+                    text.setAttribute('fill', '#f59e0b');
+                    text.textContent = `${edge.inventoryDays}d`;
+                    svg.appendChild(text);
+                }
+            });
+
+            // Render nodes
+            nodes.forEach(node => {
+                if (node.type === 'machine') {
+                    const m = node.data;
+                    const uptime = m.breakdown ? `${100 - Number(m.breakdown)}%` : "NA";
+
+                    // Create machine rectangle
+                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    rect.setAttribute('x', node.x);
+                    rect.setAttribute('y', node.y);
+                    rect.setAttribute('width', '200');
+                    rect.setAttribute('height', '150');
+                    rect.setAttribute('fill', '#ffffff');
+                    rect.setAttribute('stroke', '#667eea');
+                    rect.setAttribute('stroke-width', '2');
+                    rect.setAttribute('rx', '8');
+                    rect.setAttribute('class', 'node-machine');
+                    svg.appendChild(rect);
+
+                    // Add machine name
+                    const nameText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    nameText.setAttribute('x', node.x + 100);
+                    nameText.setAttribute('y', node.y + 20);
+                    nameText.setAttribute('text-anchor', 'middle');
+                    nameText.setAttribute('font-weight', 'bold');
+                    nameText.setAttribute('font-size', '13');
+                    nameText.setAttribute('fill', '#667eea');
+                    nameText.textContent = m.name || `Process ${node.index + 1}`;
+                    svg.appendChild(nameText);
+
+                    // Add machine details
+                    const details = [
+                        `Operators: ${m.operators || "-"}`,
+                        `Cycle Time: ${m.cycleTime || "-"} sec`,
+                        `Changeover: ${m.totalChange || "-"} min`,
+                        `Available: ${m.seconds || "-"} sec`,
+                        `Uptime: ${uptime}`,
+                        `Rejection: ${m.rejection || "-"} %`,
+                        `Rework: ${m.rework || "-"} %`
+                    ];
+
+                    details.forEach((detail, i) => {
+                        const detailText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        detailText.setAttribute('x', node.x + 10);
+                        detailText.setAttribute('y', node.y + 40 + (i * 14));
+                        detailText.setAttribute('font-size', '11');
+                        detailText.setAttribute('fill', '#2d3748');
+                        detailText.textContent = detail;
+                        svg.appendChild(detailText);
+                    });
+                    
+                } else if (node.type === 'inventory') {
+                    // Create inventory triangle
+                    const points = `${node.x},${node.y} ${node.x + 30},${node.y + 40} ${node.x - 30},${node.y + 40}`;
+                    const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                    polygon.setAttribute('points', points);
+                    polygon.setAttribute('fill', '#fef3c7');
+                    polygon.setAttribute('stroke', '#f59e0b');
+                    polygon.setAttribute('stroke-width', '2');
+                    polygon.setAttribute('class', 'node-inventory');
+                    svg.appendChild(polygon);
+
+                    // Add inventory days
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', node.x);
+                    text.setAttribute('y', node.y + 58);
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('font-size', '11');
+                    text.setAttribute('font-weight', '600');
+                    text.setAttribute('fill', '#92400e');
+                    text.textContent = `${node.data.inventory || 0}d`;
+                    svg.appendChild(text);
+                }
+            });
+
+            // Add summary metrics
+            const metricsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            metricsGroup.setAttribute('transform', `translate(220, ${svgHeight - 120})`);
+
+            // Total Cycle Time
+            const cycleTimeRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            cycleTimeRect.setAttribute('x', '0');
+            cycleTimeRect.setAttribute('y', '0');
+            cycleTimeRect.setAttribute('width', '180');
+            cycleTimeRect.setAttribute('height', '45');
+            cycleTimeRect.setAttribute('fill', '#d1fae5');
+            cycleTimeRect.setAttribute('stroke', '#10b981');
+            cycleTimeRect.setAttribute('stroke-width', '2');
+            cycleTimeRect.setAttribute('rx', '6');
+            metricsGroup.appendChild(cycleTimeRect);
+
+            const cycleTimeLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            cycleTimeLabel.setAttribute('x', '90');
+            cycleTimeLabel.setAttribute('y', '18');
+            cycleTimeLabel.setAttribute('text-anchor', 'middle');
+            cycleTimeLabel.setAttribute('font-size', '11');
+            cycleTimeLabel.setAttribute('fill', '#065f46');
+            cycleTimeLabel.setAttribute('font-weight', '600');
+            cycleTimeLabel.textContent = 'Total Cycle Time';
+            metricsGroup.appendChild(cycleTimeLabel);
+
+            const cycleTimeValue = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            cycleTimeValue.setAttribute('x', '90');
+            cycleTimeValue.setAttribute('y', '35');
+            cycleTimeValue.setAttribute('text-anchor', 'middle');
+            cycleTimeValue.setAttribute('font-size', '13');
+            cycleTimeValue.setAttribute('fill', '#065f46');
+            cycleTimeValue.setAttribute('font-weight', '700');
+            cycleTimeValue.textContent = `${totalCycleTime} sec`;
+            metricsGroup.appendChild(cycleTimeValue);
+
+            // Total Lead Time
+            const leadTimeRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            leadTimeRect.setAttribute('x', '200');
+            leadTimeRect.setAttribute('y', '0');
+            leadTimeRect.setAttribute('width', '180');
+            leadTimeRect.setAttribute('height', '45');
+            leadTimeRect.setAttribute('fill', '#fee2e2');
+            leadTimeRect.setAttribute('stroke', '#ef4444');
+            leadTimeRect.setAttribute('stroke-width', '2');
+            leadTimeRect.setAttribute('rx', '6');
+            metricsGroup.appendChild(leadTimeRect);
+
+            const leadTimeLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            leadTimeLabel.setAttribute('x', '290');
+            leadTimeLabel.setAttribute('y', '18');
+            leadTimeLabel.setAttribute('text-anchor', 'middle');
+            leadTimeLabel.setAttribute('font-size', '11');
+            leadTimeLabel.setAttribute('fill', '#991b1b');
+            leadTimeLabel.setAttribute('font-weight', '600');
+            leadTimeLabel.textContent = 'Total Lead Time';
+            metricsGroup.appendChild(leadTimeLabel);
+
+            const leadTimeValue = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            leadTimeValue.setAttribute('x', '290');
+            leadTimeValue.setAttribute('y', '35');
+            leadTimeValue.setAttribute('text-anchor', 'middle');
+            leadTimeValue.setAttribute('font-size', '13');
+            leadTimeValue.setAttribute('fill', '#991b1b');
+            leadTimeValue.setAttribute('font-weight', '700');
+            leadTimeValue.textContent = `${totalLeadTime} days`;
+            metricsGroup.appendChild(leadTimeValue);
+
+            // Value-Added Ratio
+            const varRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            varRect.setAttribute('x', '400');
+            varRect.setAttribute('y', '0');
+            varRect.setAttribute('width', '180');
+            varRect.setAttribute('height', '45');
+            varRect.setAttribute('fill', '#e0e7ff');
+            varRect.setAttribute('stroke', '#667eea');
+            varRect.setAttribute('stroke-width', '2');
+            varRect.setAttribute('rx', '6');
+            metricsGroup.appendChild(varRect);
+
+            const varLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            varLabel.setAttribute('x', '490');
+            varLabel.setAttribute('y', '18');
+            varLabel.setAttribute('text-anchor', 'middle');
+            varLabel.setAttribute('font-size', '11');
+            varLabel.setAttribute('fill', '#4338ca');
+            varLabel.setAttribute('font-weight', '600');
+            varLabel.textContent = 'Value-Added Ratio';
+            metricsGroup.appendChild(varLabel);
+
+            const varValue = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            varValue.setAttribute('x', '490');
+            varValue.setAttribute('y', '35');
+            varValue.setAttribute('text-anchor', 'middle');
+            varValue.setAttribute('font-size', '13');
+            varValue.setAttribute('fill', '#4338ca');
+            varValue.setAttribute('font-weight', '700');
+            varValue.textContent = `${valueAddedRatio}%`;
+            metricsGroup.appendChild(varValue);
+
+            svg.appendChild(metricsGroup);
+        }
+    </script>
+</body>
+</html>

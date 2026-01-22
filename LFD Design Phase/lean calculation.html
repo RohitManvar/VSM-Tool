@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lean Calculations &amp; Bottleneck Analysis</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#136dec",
+              "background-light": "#f6f7f8",
+              "background-dark": "#101822",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<!-- TopNavBar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xl">account_tree</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight">LeanVSM Auto</h2>
+</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="text-primary text-sm font-semibold border-b-2 border-primary py-1" href="#">Process Maps</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Calculations</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Reports</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+<input class="bg-slate-100 dark:bg-slate-800 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary w-64 text-slate-900 dark:text-white" placeholder="Search processes..." type="text"/>
+</div>
+<button class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="size-9 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-primary/20">
+<img class="w-full h-full object-cover" data-alt="User profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrbobXWfA4jrCz6eIewgQOwiesLJwGpzGPMvuCFfkXfFG8B4zlUYlLT-V_2799_-9kFw1vgLzl3dnZ1oF3TMtBLnWME2xuQJNJibFtrolTzWgCIRLk4i1rDdgYktnwU8GTWcoKHtz_CP5sgBW3vKSuTzJLYuCj0L6QxuGwMv7WqLPNwuFVcuy3uicr6OFh3RcFVJSIRcQDABtfwR_ycSVf1pr7wSgYRO19yuEngfMzwq3lYfOH8k6Avffs9mxgYdYk7dCeV3V3SCI"/>
+</div>
+</div>
+</header>
+<div class="flex flex-1">
+<!-- SideNavBar -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex-shrink-0 hidden lg:flex flex-col p-6 sticky top-[61px] h-[calc(100vh-61px)]">
+<div class="mb-8">
+<h1 class="text-slate-900 dark:text-white text-base font-bold">Plant Alpha</h1>
+<p class="text-slate-500 text-xs font-medium uppercase tracking-wider">Production Line 04</p>
+</div>
+<nav class="flex flex-col gap-1 flex-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all" href="#">
+<span class="material-symbols-outlined text-lg">dashboard</span>
+<span class="text-sm font-medium">Overview</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary transition-all" href="#">
+<span class="material-symbols-outlined text-lg">bar_chart_4_bars</span>
+<span class="text-sm font-semibold">Bottleneck Analysis</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all" href="#">
+<span class="material-symbols-outlined text-lg">schedule</span>
+<span class="text-sm font-medium">TAKT Management</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all" href="#">
+<span class="material-symbols-outlined text-lg">group</span>
+<span class="text-sm font-medium">Resource Planning</span>
+</a>
+<div class="h-px bg-slate-100 dark:bg-slate-800 my-4"></div>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all" href="#">
+<span class="material-symbols-outlined text-lg">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+</nav>
+<div class="mt-auto pt-6">
+<div class="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
+<p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Sync Status</p>
+<div class="flex items-center gap-2">
+<div class="size-2 bg-green-500 rounded-full animate-pulse"></div>
+<p class="text-xs font-medium text-slate-600 dark:text-slate-300">Live Connection</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto">
+<div class="max-w-6xl mx-auto px-6 py-8">
+<!-- PageHeading -->
+<div class="flex flex-wrap justify-between items-start gap-4 mb-8">
+<div class="flex flex-col gap-1">
+<h1 class="text-slate-900 dark:text-white text-3xl font-black leading-tight tracking-tight">Lean Calculations &amp; KPI Dashboard</h1>
+<p class="text-slate-500 dark:text-slate-400 text-base">Real-time performance monitoring and bottleneck detection for Line 04</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 h-10 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-bold hover:bg-slate-50 transition-colors shadow-sm">
+<span class="material-symbols-outlined text-lg">tune</span>
+<span>Filter</span>
+</button>
+<button class="flex items-center gap-2 px-4 h-10 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors shadow-sm">
+<span class="material-symbols-outlined text-lg">ios_share</span>
+<span>Export Report</span>
+</button>
+</div>
+</div>
+<!-- Stats -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+<div class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-semibold uppercase tracking-wider">TAKT Time</p>
+<span class="material-symbols-outlined text-primary">timer</span>
+</div>
+<p class="text-slate-900 dark:text-white text-3xl font-black">45s</p>
+<div class="flex items-center gap-1">
+<span class="text-red-500 text-xs font-bold flex items-center">-2%</span>
+<span class="text-slate-400 text-[10px] font-medium">vs. target 46s</span>
+</div>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-semibold uppercase tracking-wider">Available Time</p>
+<span class="material-symbols-outlined text-primary">event_available</span>
+</div>
+<p class="text-slate-900 dark:text-white text-3xl font-black">7.5 hrs</p>
+<div class="flex items-center gap-1">
+<span class="text-green-500 text-xs font-bold flex items-center">+0.5%</span>
+<span class="text-slate-400 text-[10px] font-medium">vs. last shift</span>
+</div>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-semibold uppercase tracking-wider">VA/NVA Ratio</p>
+<span class="material-symbols-outlined text-primary">pie_chart</span>
+</div>
+<p class="text-slate-900 dark:text-white text-3xl font-black">32 / 68%</p>
+<div class="flex items-center gap-1">
+<span class="text-red-500 text-xs font-bold flex items-center">-5%</span>
+<span class="text-slate-400 text-[10px] font-medium">Waste increase</span>
+</div>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-semibold uppercase tracking-wider">Lead Time</p>
+<span class="material-symbols-outlined text-primary">route</span>
+</div>
+<p class="text-slate-900 dark:text-white text-3xl font-black">4.2 Days</p>
+<div class="flex items-center gap-1">
+<span class="text-green-500 text-xs font-bold flex items-center">+1.2%</span>
+<span class="text-slate-400 text-[10px] font-medium">Process efficiency</span>
+</div>
+</div>
+</div>
+<!-- SectionHeader for Analysis -->
+<div class="flex items-center justify-between mb-4 mt-8 px-2">
+<h2 class="text-slate-900 dark:text-white text-xl font-bold tracking-tight">Bottleneck Analysis: Cycle Time vs. TAKT</h2>
+<div class="flex gap-4">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 bg-primary rounded-sm"></div>
+<span class="text-xs font-medium text-slate-500">In-Spec</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 bg-red-500 rounded-sm"></div>
+<span class="text-xs font-medium text-slate-500">Bottleneck (&gt;TAKT)</span>
+</div>
+</div>
+</div>
+<!-- Bottleneck Visual Chart -->
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm mb-8">
+<div class="h-64 relative flex items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-700 pb-2">
+<!-- Y-Axis labels (Decorative) -->
+<div class="absolute -left-10 top-0 bottom-0 flex flex-col justify-between text-[10px] font-bold text-slate-400 pr-2">
+<span>60s</span>
+<span>45s</span>
+<span>30s</span>
+<span>15s</span>
+<span>0s</span>
+</div>
+<!-- TAKT Reference Line -->
+<div class="absolute bottom-[75%] left-0 right-0 h-px bg-primary z-10 flex items-center">
+<span class="absolute right-0 -top-6 bg-primary text-white text-[10px] px-2 py-0.5 rounded font-bold">TAKT LINE: 45s</span>
+</div>
+<!-- Bar Chart Elements -->
+<div class="group relative flex-1 flex flex-col items-center">
+<div class="w-full bg-primary rounded-t-lg transition-all duration-300" style="height: 50%;"></div>
+<span class="text-[10px] mt-2 font-bold text-slate-500 uppercase">Milling</span>
+</div>
+<div class="group relative flex-1 flex flex-col items-center">
+<div class="w-full bg-primary rounded-t-lg transition-all duration-300" style="height: 62%;"></div>
+<span class="text-[10px] mt-2 font-bold text-slate-500 uppercase">Drilling</span>
+</div>
+<div class="group relative flex-1 flex flex-col items-center">
+<!-- Bottleneck Bar -->
+<div class="w-full bg-red-500 rounded-t-lg transition-all duration-300 relative group" style="height: 88%;">
+<div class="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] p-2 rounded hidden group-hover:block whitespace-nowrap z-20">
+<p class="font-bold">Assembly Alpha</p>
+<p>CT: 52s (Bottleneck)</p>
+<p>VA: 40s | NVA: 12s</p>
+</div>
+</div>
+<span class="text-[10px] mt-2 font-bold text-red-500 uppercase">Assembly</span>
+</div>
+<div class="group relative flex-1 flex flex-col items-center">
+<div class="w-full bg-primary rounded-t-lg transition-all duration-300" style="height: 45%;"></div>
+<span class="text-[10px] mt-2 font-bold text-slate-500 uppercase">Deburr</span>
+</div>
+<div class="group relative flex-1 flex flex-col items-center">
+<div class="w-full bg-primary rounded-t-lg transition-all duration-300" style="height: 70%;"></div>
+<span class="text-[10px] mt-2 font-bold text-slate-500 uppercase">Quality</span>
+</div>
+<div class="group relative flex-1 flex flex-col items-center">
+<!-- Bottleneck Bar -->
+<div class="w-full bg-red-500 rounded-t-lg transition-all duration-300" style="height: 95%;"></div>
+<span class="text-[10px] mt-2 font-bold text-red-500 uppercase">Packing</span>
+</div>
+</div>
+</div>
+<!-- Process Data Table -->
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+<div class="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white">Process Detail Log</h3>
+<span class="text-[10px] font-bold text-slate-400 bg-white dark:bg-slate-800 px-2 py-1 rounded-full border border-slate-200 dark:border-slate-700">6 STEPS ANALYZED</span>
+</div>
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="text-[11px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">
+<th class="px-6 py-4">Process Step</th>
+<th class="px-6 py-4 text-center">Cycle Time</th>
+<th class="px-6 py-4 text-center">Value Add (VA)</th>
+<th class="px-6 py-4 text-center">Non-VA (NVA)</th>
+<th class="px-6 py-4 text-center">Status</th>
+</tr>
+</thead>
+<tbody class="text-sm">
+<tr class="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="font-bold text-slate-900 dark:text-slate-100">Step 01: Milling Section</span>
+<span class="text-xs text-slate-400">Owner: Marcus V. | Machine ID: M-042</span>
+</div>
+</td>
+<td class="px-6 py-4 text-center font-semibold">32.4s</td>
+<td class="px-6 py-4 text-center text-green-500 font-medium">28.0s</td>
+<td class="px-6 py-4 text-center text-red-400 font-medium">4.4s</td>
+<td class="px-6 py-4">
+<div class="flex justify-center">
+<span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-green-100 text-green-700">Optimized</span>
+</div>
+</td>
+</tr>
+<tr class="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="font-bold text-slate-900 dark:text-slate-100">Step 03: Manual Assembly</span>
+<span class="text-xs text-slate-400">Owner: Sarah L. | Station: AS-02</span>
+</div>
+</td>
+<td class="px-6 py-4 text-center font-black text-red-500">52.1s</td>
+<td class="px-6 py-4 text-center text-green-500 font-medium">40.0s</td>
+<td class="px-6 py-4 text-center text-red-400 font-medium">12.1s</td>
+<td class="px-6 py-4">
+<div class="flex justify-center">
+<span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-red-100 text-red-700">Bottleneck</span>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="font-bold text-slate-900 dark:text-slate-100">Step 06: Quality Inspection</span>
+<span class="text-xs text-slate-400">Owner: Kevin R. | Station: QI-09</span>
+</div>
+</td>
+<td class="px-6 py-4 text-center font-semibold">38.5s</td>
+<td class="px-6 py-4 text-center text-green-500 font-medium">35.0s</td>
+<td class="px-6 py-4 text-center text-red-400 font-medium">3.5s</td>
+<td class="px-6 py-4">
+<div class="flex justify-center">
+<span class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-blue-100 text-blue-700">Stable</span>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>
