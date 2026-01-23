@@ -1,336 +1,910 @@
 <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Current Stream Map Visualization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
 
-<html class="light" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Current State Value Stream Map - VSM Automation Tool</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "primary": "#136dec",
-                        "background-light": "#f6f7f8",
-                        "background-dark": "#101822",
-                    },
-                    fontFamily: {
-                        "display": ["Inter"]
-                    },
-                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
-                },
-            },
+        body {
+            background: linear-gradient(135deg, rgb(167, 168, 176) 0%, rgb(43, 43, 44) 100%);
+            min-height: 100vh;
+            padding: 2rem;
         }
-    </script>
-<style>
-        .vsm-grid {
-            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
-            background-size: 20px 20px;
+
+        .csm-wrapper {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
         }
-        .dark .vsm-grid {
-            background-image: radial-gradient(#334155 1px, transparent 1px);
+
+        .csm-header {
+            background: #667eea;
+            color: white;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .timeline-step {
-            clip-path: polygon(0 100%, 0 50%, 50% 50%, 50% 0, 100% 0, 100% 100%);
+
+        .csm-title {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .csm-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .csm-controls {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .csm-button {
+            padding: 0.5rem 1rem;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .csm-button:hover {
+            background: #f7fafc;
+            transform: translateY(-1px);
+        }
+
+        .csm-button-primary {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .csm-button-primary:hover {
+            background: #4338ca;
+        }
+
+        .csm-content {
+            display: flex;
+            min-height: 800px;
+        }
+
+        .csm-sidebar {
+            width: 300px;
+            background: #f8fafc;
+            border-right: 1px solid #e2e8f0;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .csm-canvas-container {
+            flex: 1;
+            padding: 2rem;
+            background: #f1f5f9;
+            overflow: auto;
+            position: relative;
+        }
+
+        #csmCanvas {
+            display: block;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .metric-unit {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-left: 0.25rem;
+        }
+
+        .process-list {
+            margin-top: 2rem;
+        }
+
+        .process-list-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .process-item {
+            background: white;
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .process-name {
+            font-weight: 500;
+            color: #334155;
+        }
+
+        .process-cycle {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .process-index {
+            background: #667eea;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .legend {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .legend-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1e293b;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-right: 0.75rem;
+        }
+
+        .legend-text {
+            font-size: 0.9rem;
+            color: #475569;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            color: white;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .zoom-controls {
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 0.5rem;
+            background: white;
+            padding: 0.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .zoom-button {
+            width: 36px;
+            height: 36px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .zoom-button:hover {
+            background: #f8fafc;
+        }
+
+        .zoom-level {
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .summary-metrics {
+            position: absolute;
+            bottom: 2rem;
+            left: 2rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-width: 180px;
+        }
+
+        .summary-label {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-value {
+            font-size: 1.2rem;
+            font-weight: 700;
         }
     </style>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
-<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
-<!-- Top Navigation Bar -->
-<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark px-6 py-3 z-30">
-<div class="flex items-center gap-8">
-<div class="flex items-center gap-4 text-primary">
-<div class="size-6">
-<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-<path clip-rule="evenodd" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor" fill-rule="evenodd"></path>
-</svg>
-</div>
-<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight">VSM Automation</h2>
-</div>
-<nav class="hidden md:flex items-center gap-6">
-<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Dashboard</a>
-<a class="text-primary text-sm font-semibold border-b-2 border-primary py-1" href="#">Projects</a>
-<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Analysis</a>
-<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Library</a>
-</nav>
-</div>
-<div class="flex items-center gap-4">
-<label class="hidden sm:flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-3 py-1.5 w-64">
-<span class="material-symbols-outlined text-slate-500 text-lg">search</span>
-<input class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-500" placeholder="Search elements..." type="text"/>
-</label>
-<button class="bg-primary text-white text-sm font-bold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-<span class="material-symbols-outlined text-sm">file_download</span>
-<span>Export Map</span>
-</button>
-<div class="size-8 rounded-full bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 overflow-hidden">
-<img class="w-full h-full object-cover" data-alt="User avatar placeholder" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkHMRSvgmEiVDJ6uD8xe-S8CBMbeVq4SfLs14zKSmNV_jDCZ5H5p3ZRVaPM8y69_XALQb2eJehTyK35LLVW90l206lK2Q2DR9K6OB5TjUBwygYQNTn3pTnW-MFCm7a4FnwqYLSnqeUcrbyrVJgH0_rpMM5SLR7hrPE4_H8LirZZoT0c6-A-ufEeuTj2stMnW8lXoNR6evAhDZOTZJZe5ICWzJpjvIbjRefkXUTdiCWng7JCrwgtayoSEG-96IsbdT7St5b0J3pGqk"/>
-</div>
-</div>
-</header>
-<div class="flex flex-1 overflow-hidden">
-<!-- Sidebar Toolbox -->
-<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark p-4 flex flex-col gap-6 z-20">
-<div>
-<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Toolbox</h3>
-<div class="flex flex-col gap-1">
-<button class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary">
-<span class="material-symbols-outlined">ads_click</span>
-<span class="text-sm font-semibold">Select</span>
-</button>
-<button class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800">
-<span class="material-symbols-outlined">rectangle</span>
-<span class="text-sm font-medium">Process</span>
-</button>
-<button class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800">
-<span class="material-symbols-outlined">change_history</span>
-<span class="text-sm font-medium">Inventory</span>
-</button>
-<button class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800">
-<span class="material-symbols-outlined">trending_flat</span>
-<span class="text-sm font-medium">Material Flow</span>
-</button>
-<button class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800">
-<span class="material-symbols-outlined">bolt</span>
-<span class="text-sm font-medium">Info Flow</span>
-</button>
-<button class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800">
-<span class="material-symbols-outlined">table_chart</span>
-<span class="text-sm font-medium">Data Box</span>
-</button>
-</div>
-</div>
-<div>
-<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Properties</h3>
-<div class="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
-<p class="text-xs text-slate-500 mb-2">Select an element on the map to view and edit its properties.</p>
-</div>
-</div>
-</aside>
-<!-- Main Content Area -->
-<main class="flex-1 flex flex-col relative overflow-hidden">
-<!-- Breadcrumbs & Header -->
-<div class="px-6 py-4 bg-white dark:bg-background-dark border-b border-slate-200 dark:border-slate-800">
-<div class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-2">
-<a class="hover:text-primary" href="#">Projects</a>
-<span class="material-symbols-outlined text-[12px]">chevron_right</span>
-<a class="hover:text-primary" href="#">Assembly Line A</a>
-<span class="material-symbols-outlined text-[12px]">chevron_right</span>
-<span class="text-slate-900 dark:text-white">Current State Map</span>
-</div>
-<div class="flex flex-wrap justify-between items-end gap-4">
-<div class="flex flex-col gap-1">
-<h1 class="text-2xl font-bold text-slate-900 dark:text-white leading-none">Assembly Line A - Current State</h1>
-<p class="text-sm text-slate-500 font-normal">Last updated: Oct 24, 2023 | Version 1.2.0 | Lead Time: 4.2 Days</p>
-</div>
-<div class="flex gap-2">
-<button class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-<span class="material-symbols-outlined text-lg">history</span>
-<span>Version History</span>
-</button>
-<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-sm font-semibold hover:opacity-90 transition-opacity">
-<span class="material-symbols-outlined text-lg">analytics</span>
-<span>Analyze VSM</span>
-</button>
-</div>
-</div>
-</div>
-<!-- VSM Workspace -->
-<div class="flex-1 relative vsm-grid overflow-hidden">
-<!-- VSM Drawing Area (Simulated Canvas) -->
-<div class="absolute inset-0 p-12 overflow-auto">
-<div class="min-w-[1200px] h-full flex flex-col justify-center relative">
-<!-- Flow Line (SVG Path Placeholder) -->
-<div class="absolute top-[45%] left-0 w-full h-[2px] bg-slate-300 dark:bg-slate-700 -z-10"></div>
-<!-- Elements Row -->
-<div class="flex items-start gap-16">
-<!-- Process Block 1 -->
-<div class="flex flex-col items-center">
-<div class="w-48 bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-500 p-3 shadow-sm relative">
-<div class="text-xs font-bold text-slate-500 uppercase mb-1">Process 01</div>
-<div class="text-sm font-bold truncate">STAMPING</div>
-<div class="absolute -top-3 -right-3 bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-200">1 OP</div>
-</div>
-<div class="w-48 border-x border-b border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[11px]">
-<div class="grid grid-cols-2 border-b border-slate-200 dark:border-slate-800">
-<div class="p-1 border-r border-slate-200 dark:border-slate-800 text-slate-500">C/T</div>
-<div class="p-1 font-mono text-right">1.5s</div>
-</div>
-<div class="grid grid-cols-2 border-b border-slate-200 dark:border-slate-800">
-<div class="p-1 border-r border-slate-200 dark:border-slate-800 text-slate-500">C/O</div>
-<div class="p-1 font-mono text-right">45m</div>
-</div>
-<div class="grid grid-cols-2">
-<div class="p-1 border-r border-slate-200 dark:border-slate-800 text-slate-500">Uptime</div>
-<div class="p-1 font-mono text-right text-green-600 font-bold">98%</div>
-</div>
-</div>
-</div>
-<!-- Inventory 1 -->
-<div class="flex flex-col items-center pt-8">
-<div class="flex flex-col items-center">
-<div class="w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-b-[25px] border-b-slate-900 dark:border-b-slate-400 flex items-end justify-center">
-<span class="text-[10px] font-bold text-white mb-[-22px] ml-[-1px]">I</span>
-</div>
-<div class="mt-1 text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 px-2 rounded">500 units</div>
-<div class="text-[10px] text-slate-500 mt-0.5">0.8 Days</div>
-</div>
-</div>
-<!-- Process Block 2 -->
-<div class="flex flex-col items-center">
-<div class="w-48 bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-500 p-3 shadow-sm relative">
-<div class="text-xs font-bold text-slate-500 uppercase mb-1">Process 02</div>
-<div class="text-sm font-bold truncate">WELDING CELL</div>
-<div class="absolute -top-3 -right-3 bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-200">2 OP</div>
-</div>
-<div class="w-48 border-x border-b border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[11px]">
-<div class="grid grid-cols-2 border-b border-slate-200 dark:border-slate-800">
-<div class="p-1 border-r border-slate-200 dark:border-slate-800 text-slate-500">C/T</div>
-<div class="p-1 font-mono text-right">39s</div>
-</div>
-<div class="grid grid-cols-2 border-b border-slate-200 dark:border-slate-800">
-<div class="p-1 border-r border-slate-200 dark:border-slate-800 text-slate-500">C/O</div>
-<div class="p-1 font-mono text-right">10m</div>
-</div>
-<div class="grid grid-cols-2">
-<div class="p-1 border-r border-slate-200 dark:border-slate-800 text-slate-500">Uptime</div>
-<div class="p-1 font-mono text-right text-amber-600 font-bold">85%</div>
-</div>
-</div>
-</div>
-<!-- Inventory 2 -->
-<div class="flex flex-col items-center pt-8">
-<div class="flex flex-col items-center">
-<div class="w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-b-[25px] border-b-slate-900 dark:border-b-slate-400 flex items-end justify-center">
-<span class="text-[10px] font-bold text-white mb-[-22px] ml-[-1px]">I</span>
-</div>
-<div class="mt-1 text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 px-2 rounded">1,200 units</div>
-<div class="text-[10px] text-slate-500 mt-0.5">2.2 Days</div>
-</div>
-</div>
-<!-- Process Block 3 -->
-<div class="flex flex-col items-center">
-<div class="w-48 bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-500 p-3 shadow-sm relative">
-<div class="text-xs font-bold text-slate-500 uppercase mb-1">Process 03</div>
-<div class="text-sm font-bold truncate">ASSEMBLY</div>
-<div class="absolute -top-3 -right-3 bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-200">1 OP</div>
-</div>
-<div class="w-48 border-x border-b border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[11px]">
-<div class="grid grid-cols-2 border-b border-slate-200 dark:border-slate-800">
-<div class="p-1 border-r border-slate-200 dark:border-slate-800 text-slate-500">C/T</div>
-<div class="p-1 font-mono text-right">62s</div>
-</div>
-<div class="grid grid-cols-2 border-b border-slate-200 dark:border-slate-800">
-<div class="p-1 border-r border-slate-200 dark:border-slate-800 text-slate-500">C/O</div>
-<div class="p-1 font-mono text-right">0m</div>
-</div>
-<div class="grid grid-cols-2">
-<div class="p-1 border-r border-slate-200 dark:border-slate-800 text-slate-500">Uptime</div>
-<div class="p-1 font-mono text-right text-green-600 font-bold">100%</div>
-</div>
-</div>
-</div>
-<!-- Shipping -->
-<div class="flex flex-col items-center">
-<div class="w-24 h-24 bg-slate-100 dark:bg-slate-800 border-2 border-dashed border-slate-400 flex flex-col items-center justify-center p-2 text-center rounded">
-<span class="material-symbols-outlined text-3xl text-slate-400">local_shipping</span>
-<span class="text-[10px] font-bold text-slate-500 mt-1 uppercase">Customer</span>
-</div>
-</div>
-</div>
-<!-- Timeline (bottom of the flow) -->
-<div class="mt-20 w-full max-w-[1000px] border-t-2 border-slate-900 dark:border-slate-500 pt-0">
-<div class="flex items-end">
-<!-- Step 1 Timeline -->
-<div class="flex-1 flex flex-col">
-<div class="h-8 border-r border-slate-300 dark:border-slate-600 flex items-center justify-center text-[10px] font-bold">
-                                        0.8 Days
-                                    </div>
-<div class="h-8 border-r border-slate-900 dark:border-slate-500 bg-primary/20 flex items-center justify-center text-[10px] font-bold border-t-2 border-slate-900 dark:border-slate-500">
-                                        1.5s
-                                    </div>
-</div>
-<!-- Step 2 Timeline -->
-<div class="flex-1 flex flex-col">
-<div class="h-8 border-r border-slate-300 dark:border-slate-600 flex items-center justify-center text-[10px] font-bold">
-                                        2.2 Days
-                                    </div>
-<div class="h-8 border-r border-slate-900 dark:border-slate-500 bg-primary/20 flex items-center justify-center text-[10px] font-bold border-t-2 border-slate-900 dark:border-slate-500">
-                                        39s
-                                    </div>
-</div>
-<!-- Step 3 Timeline -->
-<div class="flex-1 flex flex-col">
-<div class="h-8 border-r border-slate-300 dark:border-slate-600 flex items-center justify-center text-[10px] font-bold">
-                                        1.2 Days
-                                    </div>
-<div class="h-8 border-r border-slate-900 dark:border-slate-500 bg-primary/20 flex items-center justify-center text-[10px] font-bold border-t-2 border-slate-900 dark:border-slate-500">
-                                        62s
-                                    </div>
-</div>
-</div>
-<!-- Labels -->
-<div class="flex justify-between items-center mt-4 px-2">
-<div class="text-xs font-bold text-slate-500 uppercase">Non-Value Added Time (NVA)</div>
-<div class="text-xs font-bold text-primary uppercase">Value Added Time (VA)</div>
-</div>
-</div>
-</div>
-</div>
-<!-- Zoom Controls Overlay -->
-<div class="absolute bottom-6 right-6 flex flex-col gap-2">
-<button class="size-10 flex items-center justify-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg hover:bg-slate-50 dark:hover:bg-slate-800">
-<span class="material-symbols-outlined">zoom_in</span>
-</button>
-<button class="size-10 flex items-center justify-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg hover:bg-slate-50 dark:hover:bg-slate-800">
-<span class="material-symbols-outlined">zoom_out</span>
-</button>
-<button class="size-10 flex items-center justify-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg hover:bg-slate-50 dark:hover:bg-slate-800">
-<span class="material-symbols-outlined">center_focus_strong</span>
-</button>
-<button class="size-10 flex items-center justify-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-lg hover:bg-slate-50 dark:hover:bg-slate-800">
-<span class="material-symbols-outlined">layers</span>
-</button>
-</div>
-<!-- Mini Map Overlay -->
-<div class="absolute bottom-6 left-6 w-32 h-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden hidden sm:block">
-<div class="w-full h-full p-2">
-<div class="w-full h-full bg-slate-200 dark:bg-slate-700 rounded-sm relative">
-<div class="absolute top-1/4 left-1/4 w-1/2 h-1/2 border-2 border-primary rounded-sm"></div>
-</div>
-</div>
-</div>
-</div>
-<!-- Footer Analysis Summary -->
-<footer class="h-16 bg-white dark:bg-background-dark border-t border-slate-200 dark:border-slate-800 px-6 flex items-center justify-between z-20">
-<div class="flex items-center gap-8">
-<div class="flex flex-col">
-<span class="text-[10px] font-bold text-slate-400 uppercase">Production Lead Time</span>
-<span class="text-sm font-bold text-slate-900 dark:text-white">4.2 Days</span>
-</div>
-<div class="h-8 w-px bg-slate-200 dark:bg-slate-800"></div>
-<div class="flex flex-col">
-<span class="text-[10px] font-bold text-slate-400 uppercase">Process Time (VA)</span>
-<span class="text-sm font-bold text-slate-900 dark:text-white">102.5 Seconds</span>
-</div>
-<div class="h-8 w-px bg-slate-200 dark:bg-slate-800"></div>
-<div class="flex flex-col">
-<span class="text-[10px] font-bold text-slate-400 uppercase">PCE Efficiency</span>
-<span class="text-sm font-bold text-primary">0.05%</span>
-</div>
-</div>
-<div class="flex items-center gap-3">
-<span class="flex items-center gap-1 text-xs font-medium text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded">
-<span class="material-symbols-outlined text-sm">check_circle</span>
-                        Balanced
-                    </span>
-<button class="text-sm font-bold text-primary hover:underline">View Full Report</button>
-</div>
-</footer>
-</main>
-</div>
-</body></html>
+<body>
+    <div class="csm-wrapper">
+        <div class="csm-header">
+            <div>
+                <h1 class="csm-title">Current Stream Map</h1>
+                <div class="csm-subtitle" id="projectInfo">Loading...</div>
+            </div>
+            <div class="csm-controls">
+                <button class="csm-button" onclick="window.location.href = 'index.html'">
+                    <span class="material-icons">arrow_back</span>
+                    Back to Input
+                </button>
+                <button class="csm-button csm-button-primary" onclick="exportAsPNG()">
+                    <span class="material-icons">download</span>
+                    Export PNG
+                </button>
+            </div>
+        </div>
+
+        <div class="csm-content">
+            <div class="csm-sidebar">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Total Cycle Time</div>
+                        <div class="metric-value" id="totalCycleTime">0<span class="metric-unit">sec</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Total Lead Time</div>
+                        <div class="metric-value" id="totalLeadTime">0<span class="metric-unit">days</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Value Added</div>
+                        <div class="metric-value" id="valueAddedRatio">0<span class="metric-unit">%</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Process Steps</div>
+                        <div class="metric-value" id="processSteps">0<span class="metric-unit">steps</span></div>
+                    </div>
+                </div>
+
+                <div class="process-list">
+                    <div class="process-list-title">Process Steps</div>
+                    <div id="processList">
+                        <!-- Process items will be added here -->
+                    </div>
+                </div>
+
+                <div class="legend">
+                    <div class="legend-title">Legend</div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #667eea; border: 2px solid #4f46e5;"></div>
+                        <div class="legend-text">Machine/Process</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #fef3c7; border: 2px solid #f59e0b; transform: rotate(45deg);"></div>
+                        <div class="legend-text">Inventory Buffer</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #667eea; height: 3px;"></div>
+                        <div class="legend-text">Process Flow</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #f59e0b; border-radius: 50%; width: 16px; height: 16px;"></div>
+                        <div class="legend-text">Inventory Days</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="csm-canvas-container">
+                <svg id="csmCanvas" width="1400" height="800"></svg>
+                
+                <div class="zoom-controls">
+                    <button class="zoom-button" onclick="zoomOut()">-</button>
+                    <div class="zoom-level" id="zoomLevel">100%</div>
+                    <button class="zoom-button" onclick="zoomIn()">+</button>
+                </div>
+
+                <div class="summary-metrics" id="summaryMetrics">
+                    <!-- Summary metrics will be added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div>Generating Current Stream Map...</div>
+    </div>
+
+    <script>
+        // Application state
+        const csmState = {
+            data: null,
+            zoomLevel: 1.0,
+            svgWidth: 1400,
+            svgHeight: 800
+        };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load data from localStorage
+            const savedData = localStorage.getItem('csmData');
+            
+            if (!savedData) {
+                alert('No data found. Please go back and generate a CSM first.');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            try {
+                csmState.data = JSON.parse(savedData);
+                initializeCSM();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('Error loading data. Please try again.');
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Initialize CSM visualization
+        function initializeCSM() {
+            // Update project info
+            document.getElementById('projectInfo').textContent = 
+                `${csmState.data.industryName} - ${csmState.data.productionLine}`;
+            
+            // Generate the CSM
+            generateCSM();
+            
+            // Update metrics
+            updateMetrics();
+            
+            // Update process list
+            updateProcessList();
+            
+            // Hide loading overlay
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }, 500);
+        }
+
+        // Generate CSM visualization
+        function generateCSM() {
+            const svg = document.getElementById('csmCanvas');
+            svg.innerHTML = '';
+            
+            // Create arrow marker definition
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            
+            const arrowMarker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+            arrowMarker.setAttribute('id', 'arrow');
+            arrowMarker.setAttribute('markerWidth', '10');
+            arrowMarker.setAttribute('markerHeight', '10');
+            arrowMarker.setAttribute('refX', '6');
+            arrowMarker.setAttribute('refY', '3');
+            arrowMarker.setAttribute('orient', 'auto');
+            
+            const arrowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            arrowPath.setAttribute('d', 'M0,0 L6,3 L0,6 Z');
+            arrowPath.setAttribute('fill', '#667eea');
+            arrowMarker.appendChild(arrowPath);
+            defs.appendChild(arrowMarker);
+            
+            svg.appendChild(defs);
+            
+            // Build node graph
+            const graph = buildNodeGraph();
+            
+            // Calculate layout
+            const layoutNodes = calculateNodeLayout(graph);
+            
+            // Calculate SVG dimensions
+            const maxX = layoutNodes.reduce((max, n) => Math.max(max, n.x), 0);
+            const maxY = layoutNodes.reduce((max, n) => Math.max(max, n.y), 0);
+            
+            csmState.svgWidth = Math.max(1400, maxX + 400);
+            csmState.svgHeight = Math.max(800, maxY + 300);
+            
+            svg.setAttribute('width', csmState.svgWidth);
+            svg.setAttribute('height', csmState.svgHeight);
+            
+            // Render edges
+            renderEdges(svg, graph, layoutNodes);
+            
+            // Render nodes
+            renderNodes(svg, layoutNodes);
+            
+            // Render summary metrics
+            renderSummaryMetrics(svg);
+        }
+
+        // Build node graph from data
+        function buildNodeGraph() {
+            const graph = {
+                nodes: new Map(),
+                edges: []
+            };
+
+            // Add machine nodes
+            csmState.data.machines.forEach((machine, index) => {
+                const nodeId = `machine-${index}`;
+                graph.nodes.set(nodeId, {
+                    id: nodeId,
+                    type: 'machine',
+                    data: machine,
+                    index: index,
+                    x: 0,
+                    y: 0,
+                    level: 0
+                });
+            });
+
+            // Add inventory nodes from connections
+            const inventoryNodes = new Set();
+            csmState.data.connections.forEach(conn => {
+                if (conn.from.startsWith('inventory-') && !inventoryNodes.has(conn.from)) {
+                    inventoryNodes.add(conn.from);
+                    graph.nodes.set(conn.from, {
+                        id: conn.from,
+                        type: 'inventory',
+                        data: { inventory: conn.inventoryDays || 0 },
+                        x: 0,
+                        y: 0,
+                        level: 0
+                    });
+                }
+                if (conn.to.startsWith('inventory-') && !inventoryNodes.has(conn.to)) {
+                    inventoryNodes.add(conn.to);
+                    graph.nodes.set(conn.to, {
+                        id: conn.to,
+                        type: 'inventory',
+                        data: { inventory: conn.inventoryDays || 0 },
+                        x: 0,
+                        y: 0,
+                        level: 0
+                    });
+                }
+            });
+
+            // Add edges
+            csmState.data.connections.forEach(conn => {
+                if (conn.from && conn.to && graph.nodes.has(conn.from) && graph.nodes.has(conn.to)) {
+                    graph.edges.push({
+                        from: conn.from,
+                        to: conn.to,
+                        inventoryDays: conn.inventoryDays || 0
+                    });
+                }
+            });
+
+            return graph;
+        }
+
+        // Calculate node layout
+        function calculateNodeLayout(graph) {
+            const nodes = Array.from(graph.nodes.values());
+            
+            // Simple layout for demo - in production, use the React component's layout algorithm
+            const levelGap = 280;
+            const nodeGap = 200;
+            const startX = 220;
+            const baseY = 280;
+            
+            // Group machines by level (simple sequential layout for demo)
+            nodes.forEach((node, index) => {
+                if (node.type === 'machine') {
+                    node.level = index;
+                    node.x = startX + node.level * levelGap;
+                    node.y = baseY;
+                }
+            });
+            
+            return nodes;
+        }
+
+        // Render edges
+        function renderEdges(svg, graph, layoutNodes) {
+            graph.edges.forEach((edge, index) => {
+                const fromNode = graph.nodes.get(edge.from);
+                const toNode = graph.nodes.get(edge.to);
+                if (!fromNode || !toNode) return;
+
+                const x1 = fromNode.x + (fromNode.type === 'machine' ? 200 : 60);
+                const y1 = fromNode.y + (fromNode.type === 'machine' ? 75 : 20);
+                const x2 = toNode.x;
+                const y2 = toNode.y + (toNode.type === 'machine' ? 75 : 20);
+
+                // Create edge line
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x1);
+                line.setAttribute('y1', y1);
+                line.setAttribute('x2', x2);
+                line.setAttribute('y2', y2);
+                line.setAttribute('stroke', '#667eea');
+                line.setAttribute('stroke-width', '2.5');
+                line.setAttribute('marker-end', 'url(#arrow)');
+                svg.appendChild(line);
+                
+                // Add inventory days label
+                if (edge.inventoryDays > 0) {
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', (x1 + x2) / 2);
+                    text.setAttribute('y', (y1 + y2) / 2 - 10);
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('font-size', '11');
+                    text.setAttribute('font-weight', '600');
+                    text.setAttribute('fill', '#f59e0b');
+                    text.textContent = `${edge.inventoryDays}d`;
+                    svg.appendChild(text);
+                }
+            });
+        }
+
+        // Render nodes
+        function renderNodes(svg, layoutNodes) {
+            layoutNodes.forEach((node) => {
+                if (node.type === 'machine') {
+                    renderMachineNode(svg, node);
+                } else if (node.type === 'inventory') {
+                    renderInventoryNode(svg, node);
+                }
+            });
+        }
+
+        // Render machine node
+        function renderMachineNode(svg, node) {
+            const machine = node.data;
+            const uptime = machine.breakdown ? `${100 - Number(machine.breakdown)}%` : "NA";
+            
+            // Create machine rectangle
+            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('x', node.x);
+            rect.setAttribute('y', node.y);
+            rect.setAttribute('width', '200');
+            rect.setAttribute('height', '150');
+            rect.setAttribute('fill', '#ffffff');
+            rect.setAttribute('stroke', '#667eea');
+            rect.setAttribute('stroke-width', '2');
+            rect.setAttribute('rx', '8');
+            rect.setAttribute('filter', 'drop-shadow(2px 4px 6px rgba(102, 126, 234, 0.2))');
+            svg.appendChild(rect);
+            
+            // Machine name
+            const nameText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            nameText.setAttribute('x', node.x + 100);
+            nameText.setAttribute('y', node.y + 20);
+            nameText.setAttribute('text-anchor', 'middle');
+            nameText.setAttribute('font-weight', 'bold');
+            nameText.setAttribute('font-size', '13');
+            nameText.setAttribute('fill', '#667eea');
+            nameText.textContent = machine.name || `Process ${node.index + 1}`;
+            svg.appendChild(nameText);
+            
+            // Machine details
+            const details = [
+                `Operators: ${machine.operators || "-"}`,
+                `Cycle Time: ${machine.cycleTime || "-"} sec`,
+                `Changeover: ${machine.totalChange || "-"} min`,
+                `Available: ${machine.seconds?.toLocaleString() || "-"} sec`,
+                `Uptime: ${uptime}`,
+                `Rejection: ${machine.rejection || "-"} %`,
+                `Rework: ${machine.rework || "-"} %`
+            ];
+            
+            details.forEach((detail, i) => {
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', node.x + 10);
+                text.setAttribute('y', node.y + 40 + (i * 14));
+                text.setAttribute('font-size', '11');
+                text.setAttribute('fill', '#2d3748');
+                text.textContent = detail;
+                svg.appendChild(text);
+            });
+        }
+
+        // Render inventory node
+        function renderInventoryNode(svg, node) {
+            // Create inventory triangle
+            const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            const points = `${node.x},${node.y} ${node.x + 30},${node.y + 40} ${node.x - 30},${node.y + 40}`;
+            polygon.setAttribute('points', points);
+            polygon.setAttribute('fill', '#fef3c7');
+            polygon.setAttribute('stroke', '#f59e0b');
+            polygon.setAttribute('stroke-width', '2');
+            svg.appendChild(polygon);
+            
+            // Inventory days label
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', node.x);
+            text.setAttribute('y', node.y + 58);
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('font-size', '11');
+            text.setAttribute('font-weight', '600');
+            text.setAttribute('fill', '#92400e');
+            text.textContent = `${node.data.inventory || 0}d`;
+            svg.appendChild(text);
+        }
+
+        // Render summary metrics
+        function renderSummaryMetrics(svg) {
+            // Calculate metrics
+            const totalCycleTime = csmState.data.machines.reduce((sum, m) => sum + Number(m.cycleTime || 0), 0);
+            const totalLeadTime = csmState.data.connections.reduce((sum, c) => sum + Number(c.inventoryDays || 0), 0);
+            const totalWaitSeconds = totalLeadTime * 24 * 3600;
+            const valueAddedRatio = totalWaitSeconds > 0 
+                ? ((totalCycleTime / (totalCycleTime + totalWaitSeconds)) * 100).toFixed(2)
+                : "100.00";
+            
+            // Create summary metrics group
+            const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            group.setAttribute('transform', `translate(220, ${csmState.svgHeight - 120})`);
+            
+            // Total Cycle Time box
+            const cycleBox = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            cycleBox.setAttribute('x', '0');
+            cycleBox.setAttribute('y', '0');
+            cycleBox.setAttribute('width', '180');
+            cycleBox.setAttribute('height', '45');
+            cycleBox.setAttribute('fill', '#d1fae5');
+            cycleBox.setAttribute('stroke', '#10b981');
+            cycleBox.setAttribute('stroke-width', '2');
+            cycleBox.setAttribute('rx', '6');
+            group.appendChild(cycleBox);
+            
+            const cycleLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            cycleLabel.setAttribute('x', '90');
+            cycleLabel.setAttribute('y', '18');
+            cycleLabel.setAttribute('text-anchor', 'middle');
+            cycleLabel.setAttribute('font-size', '11');
+            cycleLabel.setAttribute('fill', '#065f46');
+            cycleLabel.setAttribute('font-weight', '600');
+            cycleLabel.textContent = 'Total Cycle Time';
+            group.appendChild(cycleLabel);
+            
+            const cycleValue = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            cycleValue.setAttribute('x', '90');
+            cycleValue.setAttribute('y', '35');
+            cycleValue.setAttribute('text-anchor', 'middle');
+            cycleValue.setAttribute('font-size', '13');
+            cycleValue.setAttribute('fill', '#065f46');
+            cycleValue.setAttribute('font-weight', '700');
+            cycleValue.textContent = `${totalCycleTime} sec`;
+            group.appendChild(cycleValue);
+            
+            // Total Lead Time box
+            const leadBox = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            leadBox.setAttribute('x', '200');
+            leadBox.setAttribute('y', '0');
+            leadBox.setAttribute('width', '180');
+            leadBox.setAttribute('height', '45');
+            leadBox.setAttribute('fill', '#fee2e2');
+            leadBox.setAttribute('stroke', '#ef4444');
+            leadBox.setAttribute('stroke-width', '2');
+            leadBox.setAttribute('rx', '6');
+            group.appendChild(leadBox);
+            
+            const leadLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            leadLabel.setAttribute('x', '290');
+            leadLabel.setAttribute('y', '18');
+            leadLabel.setAttribute('text-anchor', 'middle');
+            leadLabel.setAttribute('font-size', '11');
+            leadLabel.setAttribute('fill', '#991b1b');
+            leadLabel.setAttribute('font-weight', '600');
+            leadLabel.textContent = 'Total Lead Time';
+            group.appendChild(leadLabel);
+            
+            const leadValue = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            leadValue.setAttribute('x', '290');
+            leadValue.setAttribute('y', '35');
+            leadValue.setAttribute('text-anchor', 'middle');
+            leadValue.setAttribute('font-size', '13');
+            leadValue.setAttribute('fill', '#991b1b');
+            leadValue.setAttribute('font-weight', '700');
+            leadValue.textContent = `${totalLeadTime} days`;
+            group.appendChild(leadValue);
+            
+            // Value-Added Ratio box
+            const ratioBox = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            ratioBox.setAttribute('x', '400');
+            ratioBox.setAttribute('y', '0');
+            ratioBox.setAttribute('width', '180');
+            ratioBox.setAttribute('height', '45');
+            ratioBox.setAttribute('fill', '#e0e7ff');
+            ratioBox.setAttribute('stroke', '#667eea');
+            ratioBox.setAttribute('stroke-width', '2');
+            ratioBox.setAttribute('rx', '6');
+            group.appendChild(ratioBox);
+            
+            const ratioLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            ratioLabel.setAttribute('x', '490');
+            ratioLabel.setAttribute('y', '18');
+            ratioLabel.setAttribute('text-anchor', 'middle');
+            ratioLabel.setAttribute('font-size', '11');
+            ratioLabel.setAttribute('fill', '#4338ca');
+            ratioLabel.setAttribute('font-weight', '600');
+            ratioLabel.textContent = 'Value-Added Ratio';
+            group.appendChild(ratioLabel);
+            
+            const ratioValue = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            ratioValue.setAttribute('x', '490');
+            ratioValue.setAttribute('y', '35');
+            ratioValue.setAttribute('text-anchor', 'middle');
+            ratioValue.setAttribute('font-size', '13');
+            ratioValue.setAttribute('fill', '#4338ca');
+            ratioValue.setAttribute('font-weight', '700');
+            ratioValue.textContent = `${valueAddedRatio}%`;
+            group.appendChild(ratioValue);
+            
+            svg.appendChild(group);
+        }
+
+        // Update metrics display
+        function updateMetrics() {
+            const totalCycleTime = csmState.data.machines.reduce((sum, m) => sum + Number(m.cycleTime || 0), 0);
+            const totalLeadTime = csmState.data.connections.reduce((sum, c) => sum + Number(c.inventoryDays || 0), 0);
+            const totalWaitSeconds = totalLeadTime * 24 * 3600;
+            const valueAddedRatio = totalWaitSeconds > 0 
+                ? ((totalCycleTime / (totalCycleTime + totalWaitSeconds)) * 100).toFixed(2)
+                : "100.00";
+            
+            document.getElementById('totalCycleTime').textContent = totalCycleTime;
+            document.getElementById('totalLeadTime').textContent = totalLeadTime;
+            document.getElementById('valueAddedRatio').textContent = valueAddedRatio;
+            document.getElementById('processSteps').textContent = csmState.data.machines.length;
+        }
+
+        // Update process list
+        function updateProcessList() {
+            const container = document.getElementById('processList');
+            container.innerHTML = '';
+            
+            csmState.data.machines.forEach((machine, index) => {
+                const item = document.createElement('div');
+                item.className = 'process-item';
+                item.innerHTML = `
+                    <div>
+                        <div class="process-name">${machine.name}</div>
+                        <div class="process-cycle">${machine.cycleTime || 0} sec cycle</div>
+                    </div>
+                    <div class="process-index">${index + 1}</div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // Zoom functions
+        function zoomIn() {
+            csmState.zoomLevel = Math.min(csmState.zoomLevel + 0.1, 2.0);
+            updateZoom();
+        }
+
+        function zoomOut() {
+            csmState.zoomLevel = Math.max(csmState.zoomLevel - 0.1, 0.5);
+            updateZoom();
+        }
+
+        function updateZoom() {
+            const svg = document.getElementById('csmCanvas');
+            svg.style.transform = `scale(${csmState.zoomLevel})`;
+            svg.style.transformOrigin = 'top left';
+            document.getElementById('zoomLevel').textContent = `${Math.round(csmState.zoomLevel * 100)}%`;
+        }
+
+        // Export as PNG
+        function exportAsPNG() {
+            const svg = document.getElementById('csmCanvas');
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = csmState.svgWidth;
+            canvas.height = csmState.svgHeight;
+            
+            const img = new Image();
+            const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+            const url = URL.createObjectURL(svgBlob);
+            
+            img.onload = function() {
+                ctx.drawImage(img, 0, 0);
+                URL.revokeObjectURL(url);
+                
+                const a = document.createElement('a');
+                a.download = `Current_Stream_Map_${Date.now()}.png`;
+                a.href = canvas.toDataURL('image/png');
+                a.click();
+            };
+            
+            img.src = url;
+        }
+    </script>
+</body>
+</html>

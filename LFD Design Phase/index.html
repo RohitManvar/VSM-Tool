@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Current Stream Mapping - Input</title>
+    <style>
+        /* CSS Styles from React component */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, rgb(167, 168, 176) 0%, rgb(43, 43, 44) 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .app-wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .title {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #f9fafb;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .input {
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .input-small {
+            padding: 0.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            width: 140px;
+        }
+
+        .break-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .shift-label {
+            font-weight: 600;
+            color: #4b5563;
+            min-width: 60px;
+        }
+
+        .button-primary {
+            width: 100%;
+            padding: 1rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 1rem;
+        }
+
+        .button-primary:hover {
+            transform: translateY(-2px);
+            background: #5a67d8;
+        }
+
+        .button-secondary {
+            padding: 0.6rem 1.2rem;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 1rem;
+        }
+
+        .button-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .button-delete {
+            padding: 0.4rem 0.8rem;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .button-delete:hover {
+            background: #dc2626;
+        }
+
+        .stat-card {
+            background: #667eea;
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .mini-stat-card {
+            background: white;
+            border: 2px solid #667eea;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .mini-stat-label {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .mini-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 1rem 0;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            min-width: 1200px;
+        }
+
+        .th {
+            background: #667eea;
+            color: white;
+            padding: 0.75rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        .td {
+            padding: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .tr:hover {
+            background: #f9fafb;
+        }
+
+        .table-input {
+            width: 100%;
+            padding: 0.4rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .read-only {
+            background: #f3f4f6;
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .excel-upload {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f0f9ff;
+            border-radius: 8px;
+            border: 2px dashed #0284c7;
+        }
+
+        .excel-upload-label {
+            display: block;
+            font-weight: 600;
+            color: #0284c7;
+            margin-bottom: 0.5rem;
+        }
+
+        .excel-upload-input {
+            padding: 0.5rem;
+            width: 100%;
+        }
+
+        .connections-grid {
+            display: grid;
+            grid-template-columns: 2fr 2fr 1fr;
+            gap: 0.75rem;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .select {
+            padding: 0.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            background: white;
+            width: 100%;
+        }
+
+        .node-type-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .badge-machine {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-inventory {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .connection-input-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .connection-input-group .input-small {
+            flex: 1;
+        }
+
+        .material-icons {
+            font-family: 'Material Icons';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="app-wrapper">
+        <div class="header">
+            <h1 class="title">Current Stream Mapping</h1>
+        </div>
+
+        <div class="container">
+            <!-- Industry Information -->
+            <div class="section">
+                <h2 class="section-title">
+                    <span class="material-icons">factory</span>
+                    Industry Information
+                </h2>
+                <div class="grid">
+                    <input class="input" id="industryName" placeholder="Industry Name" value="Manufacturing Industry">
+                    <input class="input" id="productionLine" placeholder="Production Line Names" value="Production Line A">
+                    <input class="input" type="number" id="workingDays" placeholder="Working Days per Month" value="24">
+                    <input class="input" type="number" id="monthlyRate" placeholder="Monthly Production Rate" value="10000">
+                </div>
+
+                <div id="dailyProductionCard" class="stat-card">
+                    <div class="stat-label">Daily Production Target</div>
+                    <div class="stat-value" id="dailyProductionValue">416.67 units</div>
+                </div>
+            </div>
+
+            <!-- Breaks Section -->
+            <div class="section">
+                <h2 class="section-title">
+                    <span class="material-icons">schedule</span>
+                    Shift Breaks
+                </h2>
+                <div id="breaksContainer">
+                    <div class="break-row">
+                        <span class="shift-label">Shift 1</span>
+                        <input class="input-small" type="number" placeholder="Lunch/Dinner (min)" value="60">
+                        <input class="input-small" type="number" placeholder="Tea (min)" value="15">
+                    </div>
+                </div>
+                <button class="button-secondary" onclick="addShift()">
+                    <span class="material-icons">add</span> Add Shift
+                </button>
+
+                <div class="stats-grid">
+                    <div class="mini-stat-card">
+                        <div class="mini-stat-label">Total Break Time</div>
+                        <div class="mini-stat-value" id="totalBreakTime">75 min</div>
+                    </div>
+                    <div class="mini-stat-card">
+                        <div class="mini-stat-label">Available Time</div>
+                        <div class="mini-stat-value" id="totalAvailableTime">84,300 sec</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Machines Section -->
+            <div class="section">
+                <h2 class="section-title">
+                    <span class="material-icons">build</span>
+                    Machine Configuration
+                </h2>
+                
+                <div class="table-wrapper">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th class="th">#</th>
+                                <th class="th">Machine Name</th>
+                                <th class="th">No of Available Hours daily</th>
+                                <th class="th">Total Time (sec)</th>
+                                <th class="th">Available time for last 3 months</th>
+                                <th class="th">Rework % last 3 months</th>
+                                <th class="th">Rejection % last 3 months</th>
+                                <th class="th">last 3 months brkdown %</th>
+                                <th class="th">Avg Changeover Time (min)</th>
+                                <th class="th">No of Changeover per month</th>
+                                <th class="th">Total Changeover time</th>
+                                <th class="th">Cycle Time (sec)</th>
+                                <th class="th">No. of Operators (No.)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="machinesTableBody">
+                            <!-- Machines will be added here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                <button class="button-secondary" onclick="addMachine()">
+                    <span class="material-icons">add</span> Add Machine
+                </button>
+
+                <div class="excel-upload">
+                    <label class="excel-upload-label">
+                        <span class="material-icons">upload</span>
+                        Upload Machine Data from Excel
+                    </label>
+                    <input type="file" id="excelUpload" accept=".xlsx,.xls" class="excel-upload-input">
+                </div>
+            </div>
+
+            <!-- Process Connections -->
+            <div class="section">
+                <h2 class="section-title">
+                    <span class="material-icons">share</span>
+                    Process Flow Connections
+                </h2>
+                <div id="connectionsContainer">
+                    <!-- Connections will be added here dynamically -->
+                </div>
+                <button class="button-secondary" onclick="addConnection()">
+                    <span class="material-icons">add_link</span> Add Connection
+                </button>
+            </div>
+
+            <!-- Generate VSM Button -->
+            <button class="button-primary" onclick="generateVSM()">
+                <span class="material-icons">dashboard</span>
+                Generate Current Stream Map
+            </button>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <script>
+        // Application state
+        const state = {
+            industryName: "Manufacturing Industry",
+            productionLine: "Production Line A",
+            workingDays: 24,
+            monthlyRate: 10000,
+            breaks: [{ lunch: 60, tea: 15 }],
+            machines: [],
+            connections: []
+        };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add initial machine
+            addMachine();
+            // Add initial connection
+            addConnection();
+            // Update initial calculations
+            updateCalculations();
+            
+            // Set up Excel upload
+            document.getElementById('excelUpload').addEventListener('change', handleExcelUpload);
+            
+            // Set up input listeners for calculations
+            document.getElementById('workingDays').addEventListener('input', updateDailyProduction);
+            document.getElementById('monthlyRate').addEventListener('input', updateDailyProduction);
+        });
+
+        // Create a machine object
+        function createMachine() {
+            return {
+                name: `Machine ${state.machines.length + 1}`,
+                hours: 8,
+                seconds: 28800,
+                threeMonths: 2592000,
+                rework: 0,
+                rejection: 0,
+                breakdown: 0,
+                avgChange: 0,
+                changeCount: 0,
+                totalChange: 0,
+                cycleTime: 0,
+                operators: 1
+            };
+        }
+
+        // Add a machine row
+        function addMachine() {
+            const machine = createMachine();
+            state.machines.push(machine);
+            renderMachinesTable();
+            updateConnectionOptions();
+            updateCalculations();
+        }
+
+        // Render machines table
+        function renderMachinesTable() {
+            const container = document.getElementById('machinesTableBody');
+            container.innerHTML = '';
+            
+            state.machines.forEach((machine, index) => {
+                const row = document.createElement('tr');
+                row.className = 'tr';
+                row.innerHTML = `
+                    <td class="td">${index + 1}</td>
+                    <td class="td">
+                        <input class="table-input" value="${machine.name}" 
+                               onchange="updateMachine(${index}, 'name', this.value)">
+                    </td>
+                    <td class="td">
+                        <input class="table-input" type="number" value="${machine.hours}" 
+                               onchange="updateMachineHours(${index}, this.value)">
+                    </td>
+                    <td class="td read-only">${machine.seconds.toLocaleString()}</td>
+                    <td class="td read-only">${machine.threeMonths.toLocaleString()}</td>
+                    <td class="td">
+                        <input class="table-input" type="number" value="${machine.rework}" 
+                               onchange="updateMachine(${index}, 'rework', this.value)">
+                    </td>
+                    <td class="td">
+                        <input class="table-input" type="number" value="${machine.rejection}" 
+                               onchange="updateMachine(${index}, 'rejection', this.value)">
+                    </td>
+                    <td class="td">
+                        <input class="table-input" type="number" value="${machine.breakdown}" 
+                               onchange="updateMachine(${index}, 'breakdown', this.value)">
+                    </td>
+                    <td class="td">
+                        <input class="table-input" type="number" value="${machine.avgChange}" 
+                               onchange="updateMachineChangeover(${index}, 'avgChange', this.value)">
+                    </td>
+                    <td class="td">
+                        <input class="table-input" type="number" value="${machine.changeCount}" 
+                               onchange="updateMachineChangeover(${index}, 'changeCount', this.value)">
+                    </td>
+                    <td class="td read-only">${machine.totalChange}</td>
+                    <td class="td">
+                        <input class="table-input" type="number" value="${machine.cycleTime}" 
+                               onchange="updateMachine(${index}, 'cycleTime', this.value)">
+                    </td>
+                    <td class="td">
+                        <input class="table-input" type="number" value="${machine.operators}" 
+                               onchange="updateMachine(${index}, 'operators', this.value)">
+                    </td>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        // Update machine property
+        function updateMachine(index, property, value) {
+            if (state.machines[index]) {
+                state.machines[index][property] = value;
+            }
+        }
+
+        // Update machine hours and recalculate times
+        function updateMachineHours(index, hours) {
+            if (state.machines[index]) {
+                const hoursNum = parseFloat(hours) || 0;
+                state.machines[index].hours = hoursNum;
+                state.machines[index].seconds = hoursNum * 3600;
+                state.machines[index].threeMonths = hoursNum * 3600 * state.workingDays * 3;
+                renderMachinesTable();
+            }
+        }
+
+        // Update machine changeover
+        function updateMachineChangeover(index, property, value) {
+            if (state.machines[index]) {
+                state.machines[index][property] = parseFloat(value) || 0;
+                // Recalculate total changeover
+                state.machines[index].totalChange = 
+                    (state.machines[index].avgChange || 0) * (state.machines[index].changeCount || 0);
+                renderMachinesTable();
+            }
+        }
+
+        // Add a shift break
+        function addShift() {
+            state.breaks.push({ lunch: 0, tea: 0 });
+            renderBreaks();
+            updateCalculations();
+        }
+
+        // Render breaks
+        function renderBreaks() {
+            const container = document.getElementById('breaksContainer');
+            container.innerHTML = '';
+            
+            state.breaks.forEach((breakItem, index) => {
+                const breakRow = document.createElement('div');
+                breakRow.className = 'break-row';
+                breakRow.innerHTML = `
+                    <span class="shift-label">Shift ${index + 1}</span>
+                    <input class="input-small" type="number" placeholder="Lunch/Dinner (min)" 
+                           value="${breakItem.lunch}" 
+                           onchange="updateBreak(${index}, 'lunch', this.value)">
+                    <input class="input-small" type="number" placeholder="Tea (min)" 
+                           value="${breakItem.tea}" 
+                           onchange="updateBreak(${index}, 'tea', this.value)">
+                `;
+                container.appendChild(breakRow);
+            });
+        }
+
+        // Update break time
+        function updateBreak(index, type, value) {
+            if (state.breaks[index]) {
+                state.breaks[index][type] = parseFloat(value) || 0;
+                updateCalculations();
+            }
+        }
+
+        // Add a connection
+        function addConnection() {
+            state.connections.push({
+                from: '',
+                to: '',
+                inventoryDays: 0
+            });
+            renderConnections();
+        }
+
+        // Render connections
+        function renderConnections() {
+            const container = document.getElementById('connectionsContainer');
+            container.innerHTML = '';
+            
+            state.connections.forEach((connection, index) => {
+                const connectionDiv = document.createElement('div');
+                connectionDiv.className = 'connections-grid';
+                connectionDiv.innerHTML = `
+                    <select class="select" onchange="updateConnection(${index}, 'from', this.value)">
+                        <option value="">-- Select From --</option>
+                        ${state.machines.map((machine, idx) => 
+                            `<option value="machine-${idx}" ${connection.from === `machine-${idx}` ? 'selected' : ''}>
+                                ${machine.name}
+                            </option>`
+                        ).join('')}
+                    </select>
+                    <select class="select" onchange="updateConnection(${index}, 'to', this.value)">
+                        <option value="">-- Select To --</option>
+                        ${state.machines.map((machine, idx) => 
+                            `<option value="machine-${idx}" ${connection.to === `machine-${idx}` ? 'selected' : ''}>
+                                ${machine.name}
+                            </option>`
+                        ).join('')}
+                    </select>
+                    <div class="connection-input-group">
+                        <input class="input-small" type="number" 
+                               placeholder="Inventory days" 
+                               value="${connection.inventoryDays}"
+                               onchange="updateConnection(${index}, 'inventoryDays', this.value)">
+                        <button class="button-delete" onclick="deleteConnection(${index})">
+                            Delete
+                        </button>
+                    </div>
+                `;
+                container.appendChild(connectionDiv);
+            });
+        }
+
+        // Update connection
+        function updateConnection(index, property, value) {
+            if (state.connections[index]) {
+                if (property === 'inventoryDays') {
+                    state.connections[index][property] = parseFloat(value) || 0;
+                } else {
+                    state.connections[index][property] = value;
+                }
+            }
+        }
+
+        // Delete connection
+        function deleteConnection(index) {
+            state.connections.splice(index, 1);
+            renderConnections();
+        }
+
+        // Update connection options
+        function updateConnectionOptions() {
+            renderConnections();
+        }
+
+        // Update daily production calculation
+        function updateDailyProduction() {
+            state.workingDays = parseFloat(document.getElementById('workingDays').value) || 0;
+            state.monthlyRate = parseFloat(document.getElementById('monthlyRate').value) || 0;
+            
+            if (state.workingDays > 0 && state.monthlyRate > 0) {
+                const dailyProduction = (state.monthlyRate / state.workingDays).toFixed(2);
+                document.getElementById('dailyProductionValue').textContent = `${dailyProduction} units`;
+                document.getElementById('dailyProductionCard').style.display = 'block';
+            } else {
+                document.getElementById('dailyProductionCard').style.display = 'none';
+            }
+        }
+
+        // Update all calculations
+        function updateCalculations() {
+            // Update daily production
+            updateDailyProduction();
+            
+            // Update breaks calculations
+            const totalBreakTime = state.breaks.reduce((sum, b) => sum + (b.lunch || 0) + (b.tea || 0), 0);
+            const totalAvailableTime = 24 * 60 * 60 - totalBreakTime * 60;
+            
+            document.getElementById('totalBreakTime').textContent = `${totalBreakTime} min`;
+            document.getElementById('totalAvailableTime').textContent = totalAvailableTime.toLocaleString() + ' sec';
+        }
+
+        // Handle Excel upload
+        function handleExcelUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet);
+
+                    state.machines = rows.map(row => ({
+                        name: row["Machine Name"] || `Machine ${row.__rowNum__}`,
+                        hours: parseFloat(row["No of Available Hours daily"] || 0),
+                        seconds: parseFloat(row["Total Time (sec)"] || 0),
+                        threeMonths: parseFloat(row["Available time for last 3 months"] || 0),
+                        rework: parseFloat(row["Rework % last 3 months"] || 0),
+                        rejection: parseFloat(row["Rejection % last 3 months"] || 0),
+                        breakdown: parseFloat(row["last 3 months brkdown %"] || 0),
+                        avgChange: parseFloat(row["Avg Changeover Time (min)"] || 0),
+                        changeCount: parseFloat(row["No of Changeover per month"] || 0),
+                        totalChange: parseFloat(row["Total Changeover"] || 0),
+                        cycleTime: parseFloat(row["Cycle Time (sec)"] || 0),
+                        operators: parseFloat(row["No. of Operators (No.)"] || 1)
+                    }));
+
+                    renderMachinesTable();
+                    updateConnectionOptions();
+                    alert(`Successfully imported ${state.machines.length} machines from Excel`);
+                } catch (error) {
+                    console.error('Error reading Excel file:', error);
+                    alert('Error reading Excel file. Please check the format.');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Generate VSM and redirect to CSM page
+        function generateVSM() {
+            // Show loading
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            
+            // Collect all data
+            state.industryName = document.getElementById('industryName').value || "Manufacturing Industry";
+            state.productionLine = document.getElementById('productionLine').value || "Production Line A";
+            state.workingDays = parseFloat(document.getElementById('workingDays').value) || 24;
+            state.monthlyRate = parseFloat(document.getElementById('monthlyRate').value) || 10000;
+            
+            // Validate data
+            if (state.machines.length === 0) {
+                alert('Please add at least one machine');
+                document.getElementById('loadingOverlay').style.display = 'none';
+                return;
+            }
+            
+            // Save data to localStorage
+            localStorage.setItem('csmData', JSON.stringify(state));
+            
+            // Redirect to CSM page
+            setTimeout(() => {
+                window.location.href = 'csm.html';
+            }, 500);
+        }
+    </script>
+</body>
+</html>

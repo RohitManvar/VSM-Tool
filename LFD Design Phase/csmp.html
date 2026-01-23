@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Current Stream Map - VSM</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1B2A4E",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101822",
+                        "vsm-blue": "#667eea",
+                        "vsm-yellow": "#f59e0b",
+                        "vsm-green": "#10b981",
+                        "vsm-red": "#ef4444"
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .csm-node-machine {
+            filter: drop-shadow(2px 4px 6px rgba(102, 126, 234, 0.2));
+        }
+        .csm-node-inventory {
+            filter: drop-shadow(1px 2px 4px rgba(245, 158, 11, 0.2));
+        }
+        .arrow-marker {
+            marker-width: 10;
+            marker-height: 10;
+            ref-x: 6;
+            ref-y: 3;
+            orient: auto;
+        }
+        .metric-box {
+            transition: all 0.3s ease;
+        }
+        .metric-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0d131b] dark:text-slate-200">
+
+    <div class="relative flex min-h-screen w-full flex-col">
+        <!-- Top Navigation Bar -->
+        <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark px-10 py-3 sticky top-0 z-50">
+            <div class="flex items-center gap-8">
+                <div class="flex items-center gap-4 text-primary">
+                    <div class="flex items-center gap-3">
+                        <div class="size-10 bg-white rounded-lg flex items-center justify-center shadow-lg">
+                            <div class="w-6 h-6 bg-vsm-blue rounded-md flex items-center justify-center text-white font-bold text-xs">VSM</div>
+                        </div>
+                    </div>
+                    <h2 class="text-[#0d131b] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Current Stream Map</h2>
+                </div>
+                <nav class="flex items-center gap-9">
+                    <a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#" onclick="goBack()">← Back to Builder</a>
+                </nav>
+            </div>
+            <div class="flex flex-1 justify-end gap-6 items-center">
+                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-slate-200" data-alt="User avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD9VgUy0-9hhet-G5pt-5LE7ym_udv4S5tX-wWbZEI-hmG68eB9A8kCJjw-JxPyQAooz7ip3FKIVG5buKl9sxktlcNJYTMOBJS7L5dd9Fzizo3wrxLzrnetxRtvCj_lhI_m_ZasNZuuDytBaiTloMvQFFbAEZpgFzVdRHuqfGECqaVa6gnGg1YRbEDluc9lJRjs_4EF-_sOrnHY7xvolo7dMcJ4JATH8BibDDQ7lOcLHe6kd5Wx2H-YQCq5M3Mwa1OAfKXo-pM2Lbs");'></div>
+            </div>
+        </header>
+        
+        <div class="flex flex-1">
+            <!-- Sidebar with Metrics -->
+            <aside class="w-80 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark hidden lg:flex flex-col p-6 gap-6">
+                <div class="flex flex-col">
+                    <h1 class="text-primary text-xl font-bold mb-2">Project Summary</h1>
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="material-symbols-outlined text-vsm-blue">factory</span>
+                        <p class="text-sm font-medium" id="industryName">Industry Name</p>
+                    </div>
+                    <div class="flex items-center gap-2 mb-6">
+                        <span class="material-symbols-outlined text-vsm-blue">timeline</span>
+                        <p class="text-sm font-medium" id="productionLine">Production Line</p>
+                    </div>
+                </div>
+                
+                <!-- Key Metrics -->
+                <div class="flex flex-col gap-4">
+                    <h2 class="text-primary text-sm font-bold uppercase tracking-wider">Key Metrics</h2>
+                    
+                    <div class="metric-box p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-slate-800 dark:to-slate-900 border border-green-200 dark:border-emerald-800 rounded-xl">
+                        <div class="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 mb-1">
+                            <span class="material-symbols-outlined text-lg">timer</span>
+                            <p class="text-sm font-bold">Total Cycle Time</p>
+                        </div>
+                        <p class="text-emerald-900 dark:text-white text-2xl font-bold" id="metricCycleTime">0 <span class="text-sm font-normal">sec</span></p>
+                    </div>
+                    
+                    <div class="metric-box p-4 bg-gradient-to-r from-red-50 to-rose-50 dark:from-slate-800 dark:to-slate-900 border border-red-200 dark:border-rose-800 rounded-xl">
+                        <div class="flex items-center gap-2 text-rose-700 dark:text-rose-300 mb-1">
+                            <span class="material-symbols-outlined text-lg">history</span>
+                            <p class="text-sm font-bold">Total Lead Time</p>
+                        </div>
+                        <p class="text-rose-900 dark:text-white text-2xl font-bold" id="metricLeadTime">0 <span class="text-sm font-normal">days</span></p>
+                    </div>
+                    
+                    <div class="metric-box p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900 border border-blue-200 dark:border-indigo-800 rounded-xl">
+                        <div class="flex items-center gap-2 text-indigo-700 dark:text-indigo-300 mb-1">
+                            <span class="material-symbols-outlined text-lg">percent</span>
+                            <p class="text-sm font-bold">Value-Added Ratio</p>
+                        </div>
+                        <p class="text-indigo-900 dark:text-white text-2xl font-bold" id="metricValueAdded">0 <span class="text-sm font-normal">%</span></p>
+                    </div>
+                    
+                    <div class="metric-box p-4 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-slate-800 dark:to-slate-900 border border-amber-200 dark:border-yellow-800 rounded-xl">
+                        <div class="flex items-center gap-2 text-amber-700 dark:text-amber-300 mb-1">
+                            <span class="material-symbols-outlined text-lg">account_tree</span>
+                            <p class="text-sm font-bold">Process Steps</p>
+                        </div>
+                        <p class="text-amber-900 dark:text-white text-2xl font-bold" id="metricProcessSteps">0 <span class="text-sm font-normal">steps</span></p>
+                    </div>
+                </div>
+                
+                <!-- Process List -->
+                <div class="mt-4">
+                    <h2 class="text-primary text-sm font-bold uppercase tracking-wider mb-3">Process Flow</h2>
+                    <div class="space-y-2 max-h-60 overflow-y-auto pr-2" id="processList">
+                        <!-- Processes will be listed here -->
+                    </div>
+                </div>
+            </aside>
+            
+            <!-- Main Content Area - CSM Visualization -->
+            <main class="flex-1 overflow-auto p-6">
+                <!-- Canvas Header -->
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <div class="flex flex-col gap-1">
+                        <h1 class="text-[#0d131b] dark:text-white text-3xl font-black tracking-tight">Current Stream Map Visualization</h1>
+                        <p class="text-[#4c6c9a] dark:text-slate-400 text-base">Interactive visualization of your manufacturing process flow with cycle times and inventory buffers.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="zoomIn()" class="flex items-center gap-2 rounded-lg h-11 px-4 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-[#0d131b] dark:text-white text-sm font-bold hover:bg-slate-50 transition-all">
+                            <span class="material-symbols-outlined text-lg">zoom_in</span>
+                            Zoom In
+                        </button>
+                        <button onclick="zoomOut()" class="flex items-center gap-2 rounded-lg h-11 px-4 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-[#0d131b] dark:text-white text-sm font-bold hover:bg-slate-50 transition-all">
+                            <span class="material-symbols-outlined text-lg">zoom_out</span>
+                            Zoom Out
+                        </button>
+                        <button onclick="resetZoom()" class="flex items-center gap-2 rounded-lg h-11 px-4 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-[#0d131b] dark:text-white text-sm font-bold hover:bg-slate-50 transition-all">
+                            <span class="material-symbols-outlined text-lg">restart_alt</span>
+                            Reset View
+                        </button>
+                    </div>
+                    <div class="flex gap-3">
+                        <!-- PDF Export Button -->
+                        <button onclick="exportToPDF()"
+                        class="w-full flex items-center justify-center gap-2 rounded-lg h-11 px-4
+                               border border-slate-300 dark:border-slate-700
+                               bg-white dark:bg-slate-800 text-[#0d131b] dark:text-white
+                               text-sm font-bold hover:bg-slate-50 transition-all mb-3">
+                        <span class="material-symbols-outlined text-lg">picture_as_pdf</span>
+                        Export as PDF
+                      </button>                      
+                    </div>
+                </div>
+
+                
+                <!-- CSM Visualization Container -->
+                <div id="csmCanvas" class="relative border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl overflow-hidden bg-gradient-to-br from-slate-50 to-white dark:from-slate-900 dark:to-background-dark p-4 min-h-[600px]">
+                    <div id="csmContainer" class="overflow-auto">
+                        <svg id="csmCanvas" width="1400" height="800" class="svg-canvas"></svg>
+                    </div>
+                    
+                    <!-- Loading Overlay -->
+                    <div id="loadingOverlay" class="absolute inset-0 bg-white/80 dark:bg-slate-900/80 flex flex-col items-center justify-center z-10 transition-opacity duration-300">
+                        <div class="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+                        <p class="text-lg font-semibold text-slate-700 dark:text-slate-300">Generating Current Stream Map...</p>
+                    </div>
+                </div>
+                
+                <!-- Bottom Metrics -->
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-emerald-700 dark:text-emerald-300">Total Working Days/Month</p>
+                                <p class="text-2xl font-bold text-emerald-900 dark:text-white" id="workingDays">24</p>
+                            </div>
+                            <span class="material-symbols-outlined text-3xl text-emerald-500">event</span>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-blue-700 dark:text-blue-300">Monthly Production Rate</p>
+                                <p class="text-2xl font-bold text-blue-900 dark:text-white" id="monthlyRate">10,000</p>
+                            </div>
+                            <span class="material-symbols-outlined text-3xl text-blue-500">trending_up</span>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-purple-700 dark:text-purple-300">Daily Production Target</p>
+                                <p class="text-2xl font-bold text-purple-900 dark:text-white" id="dailyProduction">416.67</p>
+                            </div>
+                            <span class="material-symbols-outlined text-3xl text-purple-500">target</span>
+                        </div>
+                    </div>
+
+                    <!-- Sticky Footer Calculation Summary -->
+                    <footer class="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-10 py-4 flex items-center justify-between z-50">
+                        <div class="flex items-center gap-8">
+                            <div>
+                                <p class="text-sm font-medium text-emerald-700 dark:text-emerald-300">Total Working Days/Month</p>
+                                <p class="text-2xl font-bold text-emerald-900 dark:text-white" id="workingDays">24</p>
+                            </div>
+                            <span class="material-symbols-outlined text-3xl text-emerald-500">event</span>
+                        </div>
+                        <div>
+                            <div>
+                                <p class="text-sm font-medium text-blue-700 dark:text-blue-300">Monthly Production Rate</p>
+                                <p class="text-2xl font-bold text-blue-900 dark:text-white" id="monthlyRate">10,000</p>
+                            </div>
+                            <span class="material-symbols-outlined text-3xl text-blue-500">trending_up</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-purple-700 dark:text-purple-300">Daily Production Target</p>
+                                <p class="text-2xl font-bold text-purple-900 dark:text-white" id="dailyProduction">416.67</p>
+                            </div>
+                            <span class="material-symbols-outlined text-3xl text-purple-500">target</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <button class="px-6 py-2 rounded-lg text-slate-700 dark:text-slate-200 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Previous</button>
+                            <button onclick="goNext()" class="px-8 py-2.5 bg-primary text-white rounded-lg font-bold shadow-lg shadow-primary/25 hover:translate-y-[-1px] transition-all">Towards Future State</button>
+                        </div>
+                    </footer>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Application state
+        const csmState = {
+            machines: [],
+            connections: [],
+            industryName: "Manufacturing Industry",
+            productionLine: "Production Line A",
+            workingDays: 24,
+            monthlyRate: 10000,
+            zoomLevel: 1.0
+        };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Try to get data from localStorage (passed from previous page)
+            loadDataFromStorage();
+            
+            // Generate the CSM visualization
+            setTimeout(() => {
+            generateCSM();
+            updateMetrics();
+            updateProcessList();
+            hideLoading();
+            }, 500);
+        });
+
+        // Load data from localStorage or use sample data
+        function loadDataFromStorage() {
+    const params = new URLSearchParams(window.location.search);
+    const dataParam = params.get('data');
+
+    if (!dataParam) {
+        alert("No CSM data found");
+        return;
+    }
+
+    const data = JSON.parse(decodeURIComponent(dataParam));
+
+    csmState.machines = data.machines;
+    csmState.connections = data.connections;
+    csmState.industryName = data.industryName;
+    csmState.productionLine = data.productionLine;
+    csmState.workingDays = data.workingDays;
+    csmState.monthlyRate = data.monthlyRate;
+}
+
+
+        // Update metrics display
+        function updateMetrics() {
+            // Calculate total cycle time
+            const totalCycleTime = csmState.machines.reduce((sum, m) => sum + Number(m.cycleTime || 0), 0);
+            
+            // Calculate total lead time (sum of inventory days from connections)
+            const totalLeadTime = csmState.connections.reduce((sum, c) => sum + Number(c.inventoryDays || 0), 0);
+            
+            // Calculate value-added ratio
+            const totalWaitSeconds = totalLeadTime * 24 * 3600;
+            const valueAddedRatio = totalWaitSeconds > 0 
+                ? ((totalCycleTime / (totalCycleTime + totalWaitSeconds)) * 100).toFixed(2)
+                : "100.00";
+            
+            // Calculate daily production
+            const dailyProduction = csmState.monthlyRate && csmState.workingDays 
+                ? (csmState.monthlyRate / csmState.workingDays).toFixed(2)
+                : "0.00";
+            
+            // Update metrics display
+            document.getElementById('metricCycleTime').textContent = `${totalCycleTime} sec`;
+            document.getElementById('metricLeadTime').textContent = `${totalLeadTime} days`;
+            document.getElementById('metricValueAdded').textContent = `${valueAddedRatio}%`;
+            document.getElementById('metricProcessSteps').textContent = `${csmState.machines.length} steps`;
+            document.getElementById('industryName').textContent = csmState.industryName;
+            document.getElementById('productionLine').textContent = csmState.productionLine;
+            document.getElementById('workingDays').textContent = csmState.workingDays;
+            document.getElementById('monthlyRate').textContent = csmState.monthlyRate.toLocaleString();
+            document.getElementById('dailyProduction').textContent = dailyProduction;
+        }
+
+        // Update process list in sidebar
+        function updateProcessList() {
+            const processList = document.getElementById('processList');
+            processList.innerHTML = '';
+            
+            csmState.machines.forEach((machine, index) => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors';
+                item.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="size-8 rounded-md bg-vsm-blue/10 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-vsm-blue text-sm">build</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-slate-800 dark:text-white">${machine.name || `Process ${index + 1}`}</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">${machine.cycleTime || 0} sec cycle</p>
+                        </div>
+                    </div>
+                    <span class="text-xs font-bold px-2 py-1 rounded-full bg-vsm-blue/20 text-vsm-blue">${index + 1}</span>
+                `;
+                processList.appendChild(item);
+            });
+        }
+
+        // Generate the CSM visualization
+        function generateCSM() {
+            const svg = document.getElementById('csmCanvas');
+            svg.innerHTML = '';
+            
+            // Create definitions for arrow markers
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            
+            const arrowMarker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+            arrowMarker.setAttribute('id', 'arrow');
+            arrowMarker.setAttribute('markerWidth', '10');
+            arrowMarker.setAttribute('markerHeight', '10');
+            arrowMarker.setAttribute('refX', '6');
+            arrowMarker.setAttribute('refY', '3');
+            arrowMarker.setAttribute('orient', 'auto');
+            
+            const arrowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            arrowPath.setAttribute('d', 'M0,0 L6,3 L0,6 Z');
+            arrowPath.setAttribute('fill', '#667eea');
+            arrowMarker.appendChild(arrowPath);
+            defs.appendChild(arrowMarker);
+            
+            svg.appendChild(defs);
+            
+            // Build node graph structure
+            const nodeGraph = buildNodeGraph();
+            
+            // Calculate layout
+            const layoutNodes = calculateNodeLayout(nodeGraph);
+            
+            // Calculate SVG dimensions
+            const svgWidth = Math.max(1400, layoutNodes.reduce((max, n) => Math.max(max, n.x), 0) + 400);
+            const svgHeight = Math.max(800, layoutNodes.reduce((max, n) => Math.max(max, n.y), 0) + 300);
+            
+            svg.setAttribute('width', svgWidth);
+            svg.setAttribute('height', svgHeight);
+            
+            // Render edges first (so they appear behind nodes)
+            renderEdges(svg, nodeGraph, layoutNodes);
+            
+            // Render nodes
+            renderNodes(svg, layoutNodes);
+            
+            // Render summary metrics
+            renderSummaryMetrics(svg, svgWidth, svgHeight);
+            
+            // Update container size
+            document.getElementById('csmContainer').style.height = `${svgHeight + 100}px`;
+        }
+
+        // Build node graph from machines and connections
+        function buildNodeGraph() {
+            const graph = {
+                nodes: new Map(),
+                edges: []
+            };
+
+            // Add machine nodes
+            csmState.machines.forEach((m, i) => {
+                const nodeId = `machine-${i}`;
+                graph.nodes.set(nodeId, {
+                    id: nodeId,
+                    type: 'machine',
+                    data: m,
+                    index: i,
+                    x: 0,
+                    y: 0,
+                    level: 0
+                });
+            });
+
+            // Add inventory nodes from connections
+            const inventoryNodes = new Set();
+            csmState.connections.forEach(conn => {
+                if (conn.from.startsWith('inventory-') && !inventoryNodes.has(conn.from)) {
+                    inventoryNodes.add(conn.from);
+                    graph.nodes.set(conn.from, {
+                        id: conn.from,
+                        type: 'inventory',
+                        data: { inventory: conn.inventoryDays || 0 },
+                        x: 0,
+                        y: 0,
+                        level: 0
+                    });
+                }
+                if (conn.to.startsWith('inventory-') && !inventoryNodes.has(conn.to)) {
+                    inventoryNodes.add(conn.to);
+                    graph.nodes.set(conn.to, {
+                        id: conn.to,
+                        type: 'inventory',
+                        data: { inventory: conn.inventoryDays || 0 },
+                        x: 0,
+                        y: 0,
+                        level: 0
+                    });
+                }
+            });
+
+            // Add edges
+            csmState.connections.forEach(conn => {
+                if (conn.from && conn.to && graph.nodes.has(conn.from) && graph.nodes.has(conn.to)) {
+                    graph.edges.push({
+                        from: conn.from,
+                        to: conn.to,
+                        inventoryDays: conn.inventoryDays || 0
+                    });
+                }
+            });
+
+            return graph;
+        }
+
+        // Calculate node layout (topological layering)
+        function calculateNodeLayout(graph) {
+            const nodes = Array.from(graph.nodes.values());
+            
+            // Calculate in-degrees
+            const inDegree = new Map();
+            nodes.forEach(n => inDegree.set(n.id, 0));
+            graph.edges.forEach(e => {
+                inDegree.set(e.to, (inDegree.get(e.to) || 0) + 1);
+            });
+
+            // Find start nodes (no incoming edges)
+            const queue = nodes.filter(n => inDegree.get(n.id) === 0);
+            if (queue.length === 0 && nodes.length > 0) {
+                // If no start nodes, pick first node
+                queue.push(nodes[0]);
+            }
+
+            // BFS to assign levels
+            const visited = new Set();
+            let currentLevel = 0;
+            
+            while (queue.length > 0) {
+                const levelSize = queue.length;
+                for (let i = 0; i < levelSize; i++) {
+                    const node = queue.shift();
+                    if (visited.has(node.id)) continue;
+                    
+                    visited.add(node.id);
+                    node.level = currentLevel;
+
+                    // Add children
+                    graph.edges
+                        .filter(e => e.from === node.id)
+                        .forEach(e => {
+                            const childNode = graph.nodes.get(e.to);
+                            if (childNode && !visited.has(childNode.id)) {
+                                queue.push(childNode);
+                            }
+                        });
+                }
+                currentLevel++;
+            }
+
+            // Group nodes by level
+            const levelGroups = new Map();
+            nodes.forEach(n => {
+                if (!levelGroups.has(n.level)) {
+                    levelGroups.set(n.level, []);
+                }
+                levelGroups.get(n.level).push(n);
+            });
+
+            // Assign positions
+            const levelGap = 280;
+            const nodeGap = 200;
+            const startX = 220;
+            const baseY = 280;
+
+            levelGroups.forEach((levelNodes, level) => {
+                const x = startX + level * levelGap;
+                const totalHeight = levelNodes.length * nodeGap;
+                const startY = baseY - totalHeight / 2 + nodeGap / 2;
+
+                levelNodes.forEach((node, i) => {
+                    node.x = x;
+                    node.y = startY + i * nodeGap;
+                });
+            });
+
+            return nodes;
+        }
+
+        // Render edges on the SVG
+        function renderEdges(svg, graph, layoutNodes) {
+            graph.edges.forEach((edge, i) => {
+                const fromNode = graph.nodes.get(edge.from);
+                const toNode = graph.nodes.get(edge.to);
+                if (!fromNode || !toNode) return;
+
+                const x1 = fromNode.x + (fromNode.type === 'machine' ? 200 : 60);
+                const y1 = fromNode.y + (fromNode.type === 'machine' ? 75 : 20);
+                const x2 = toNode.x;
+                const y2 = toNode.y + (toNode.type === 'machine' ? 75 : 20);
+
+                // Create edge group
+                const edgeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                
+                // Create line
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x1);
+                line.setAttribute('y1', y1);
+                line.setAttribute('x2', x2);
+                line.setAttribute('y2', y2);
+                line.setAttribute('stroke', '#667eea');
+                line.setAttribute('stroke-width', '2.5');
+                line.setAttribute('marker-end', 'url(#arrow)');
+                edgeGroup.appendChild(line);
+                
+                // Add inventory days label if applicable
+                if (edge.inventoryDays > 0) {
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', (x1 + x2) / 2);
+                    text.setAttribute('y', (y1 + y2) / 2 - 10);
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('font-size', '11');
+                    text.setAttribute('font-weight', '600');
+                    text.setAttribute('fill', '#f59e0b');
+                    text.textContent = `${edge.inventoryDays}d`;
+                    edgeGroup.appendChild(text);
+                }
+                
+                svg.appendChild(edgeGroup);
+            });
+        }
+
+        // Render nodes on the SVG
+        function renderNodes(svg, layoutNodes) {
+            layoutNodes.forEach((node) => {
+                if (node.type === 'machine') {
+                    renderMachineNode(svg, node);
+                } else if (node.type === 'inventory') {
+                    renderInventoryNode(svg, node);
+                }
+            });
+        }
+
+        // Render a machine node
+        function renderMachineNode(svg, node) {
+            const m = node.data;
+            const uptime = m.breakdown ? `${100 - Number(m.breakdown)}%` : "NA";
+            
+            const nodeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            nodeGroup.setAttribute('class', 'csm-node-machine');
+            
+            // Machine rectangle
+            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('x', node.x);
+            rect.setAttribute('y', node.y);
+            rect.setAttribute('width', '200');
+            rect.setAttribute('height', '150');
+            rect.setAttribute('fill', '#ffffff');
+            rect.setAttribute('stroke', '#667eea');
+            rect.setAttribute('stroke-width', '2');
+            rect.setAttribute('rx', '8');
+            nodeGroup.appendChild(rect);
+            
+            // Machine name
+            const nameText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            nameText.setAttribute('x', node.x + 100);
+            nameText.setAttribute('y', node.y + 20);
+            nameText.setAttribute('text-anchor', 'middle');
+            nameText.setAttribute('font-weight', 'bold');
+            nameText.setAttribute('font-size', '13');
+            nameText.setAttribute('fill', '#667eea');
+            nameText.textContent = m.name || `Process ${node.index + 1}`;
+            nodeGroup.appendChild(nameText);
+            
+            // Machine details
+            const details = [
+                `Operators: ${m.operators || "-"}`,
+                `Cycle Time: ${m.cycleTime || "-"} sec`,
+                `Changeover: ${m.totalChange || "-"} min`,
+                `Available: ${m.seconds || "-"} sec`,
+                `Uptime: ${uptime}`,
+                `Rejection: ${m.rejection || "-"} %`,
+                `Rework: ${m.rework || "-"} %`
+            ];
+            
+            details.forEach((detail, i) => {
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', node.x + 10);
+                text.setAttribute('y', node.y + 40 + (i * 14));
+                text.setAttribute('font-size', '11');
+                text.setAttribute('fill', '#2d3748');
+                text.textContent = detail;
+                nodeGroup.appendChild(text);
+            });
+            
+            svg.appendChild(nodeGroup);
+        }
+
+        // Render an inventory node
+        function renderInventoryNode(svg, node) {
+            const nodeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            nodeGroup.setAttribute('class', 'csm-node-inventory');
+            
+            // Inventory triangle
+            const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            const points = `${node.x},${node.y} ${node.x + 30},${node.y + 40} ${node.x - 30},${node.y + 40}`;
+            polygon.setAttribute('points', points);
+            polygon.setAttribute('fill', '#fef3c7');
+            polygon.setAttribute('stroke', '#f59e0b');
+            polygon.setAttribute('stroke-width', '2');
+            nodeGroup.appendChild(polygon);
+            
+            // Inventory days label
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', node.x);
+            text.setAttribute('y', node.y + 58);
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('font-size', '11');
+            text.setAttribute('font-weight', '600');
+            text.setAttribute('fill', '#92400e');
+            text.textContent = `${node.data.inventory || 0}d`;
+            nodeGroup.appendChild(text);
+            
+            svg.appendChild(nodeGroup);
+        }
+
+        // Render summary metrics at the bottom
+        function renderSummaryMetrics(svg, svgWidth, svgHeight) {
+            // Calculate metrics
+            const totalCycleTime = csmState.machines.reduce((sum, m) => sum + Number(m.cycleTime || 0), 0);
+            const totalLeadTime = csmState.connections.reduce((sum, c) => sum + Number(c.inventoryDays || 0), 0);
+            const totalWaitSeconds = totalLeadTime * 24 * 3600;
+            const valueAddedRatio = totalWaitSeconds > 0 
+                ? ((totalCycleTime / (totalCycleTime + totalWaitSeconds)) * 100).toFixed(2)
+                : "100.00";
+            
+            const metricsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            metricsGroup.setAttribute('transform', `translate(220, ${svgHeight - 120})`);
+            
+            // Total Cycle Time box
+            const cycleBox = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            cycleBox.setAttribute('x', '0');
+            cycleBox.setAttribute('y', '0');
+            cycleBox.setAttribute('width', '180');
+            cycleBox.setAttribute('height', '45');
+            cycleBox.setAttribute('fill', '#d1fae5');
+            cycleBox.setAttribute('stroke', '#10b981');
+            cycleBox.setAttribute('stroke-width', '2');
+            cycleBox.setAttribute('rx', '6');
+            metricsGroup.appendChild(cycleBox);
+            
+            const cycleLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            cycleLabel.setAttribute('x', '90');
+            cycleLabel.setAttribute('y', '18');
+            cycleLabel.setAttribute('text-anchor', 'middle');
+            cycleLabel.setAttribute('font-size', '11');
+            cycleLabel.setAttribute('fill', '#065f46');
+            cycleLabel.setAttribute('font-weight', '600');
+            cycleLabel.textContent = 'Total Cycle Time';
+            metricsGroup.appendChild(cycleLabel);
+            
+            const cycleValue = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            cycleValue.setAttribute('x', '90');
+            cycleValue.setAttribute('y', '35');
+            cycleValue.setAttribute('text-anchor', 'middle');
+            cycleValue.setAttribute('font-size', '13');
+            cycleValue.setAttribute('fill', '#065f46');
+            cycleValue.setAttribute('font-weight', '700');
+            cycleValue.textContent = `${totalCycleTime} sec`;
+            metricsGroup.appendChild(cycleValue);
+            
+            // Total Lead Time box
+            const leadBox = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            leadBox.setAttribute('x', '200');
+            leadBox.setAttribute('y', '0');
+            leadBox.setAttribute('width', '180');
+            leadBox.setAttribute('height', '45');
+            leadBox.setAttribute('fill', '#fee2e2');
+            leadBox.setAttribute('stroke', '#ef4444');
+            leadBox.setAttribute('stroke-width', '2');
+            leadBox.setAttribute('rx', '6');
+            metricsGroup.appendChild(leadBox);
+            
+            const leadLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            leadLabel.setAttribute('x', '290');
+            leadLabel.setAttribute('y', '18');
+            leadLabel.setAttribute('text-anchor', 'middle');
+            leadLabel.setAttribute('font-size', '11');
+            leadLabel.setAttribute('fill', '#991b1b');
+            leadLabel.setAttribute('font-weight', '600');
+            leadLabel.textContent = 'Total Lead Time';
+            metricsGroup.appendChild(leadLabel);
+            
+            const leadValue = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            leadValue.setAttribute('x', '290');
+            leadValue.setAttribute('y', '35');
+            leadValue.setAttribute('text-anchor', 'middle');
+            leadValue.setAttribute('font-size', '13');
+            leadValue.setAttribute('fill', '#991b1b');
+            leadValue.setAttribute('font-weight', '700');
+            leadValue.textContent = `${totalLeadTime} days`;
+            metricsGroup.appendChild(leadValue);
+            
+            // Value-Added Ratio box
+            const ratioBox = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            ratioBox.setAttribute('x', '400');
+            ratioBox.setAttribute('y', '0');
+            ratioBox.setAttribute('width', '180');
+            ratioBox.setAttribute('height', '45');
+            ratioBox.setAttribute('fill', '#e0e7ff');
+            ratioBox.setAttribute('stroke', '#667eea');
+            ratioBox.setAttribute('stroke-width', '2');
+            ratioBox.setAttribute('rx', '6');
+            metricsGroup.appendChild(ratioBox);
+            
+            const ratioLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            ratioLabel.setAttribute('x', '490');
+            ratioLabel.setAttribute('y', '18');
+            ratioLabel.setAttribute('text-anchor', 'middle');
+            ratioLabel.setAttribute('font-size', '11');
+            ratioLabel.setAttribute('fill', '#4338ca');
+            ratioLabel.setAttribute('font-weight', '600');
+            ratioLabel.textContent = 'Value-Added Ratio';
+            metricsGroup.appendChild(ratioLabel);
+            
+            const ratioValue = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            ratioValue.setAttribute('x', '490');
+            ratioValue.setAttribute('y', '35');
+            ratioValue.setAttribute('text-anchor', 'middle');
+            ratioValue.setAttribute('font-size', '13');
+            ratioValue.setAttribute('fill', '#4338ca');
+            ratioValue.setAttribute('font-weight', '700');
+            ratioValue.textContent = `${valueAddedRatio}%`;
+            metricsGroup.appendChild(ratioValue);
+            
+            svg.appendChild(metricsGroup);
+        }
+
+        // Zoom functions
+        function zoomIn() {
+            csmState.zoomLevel = Math.min(csmState.zoomLevel + 0.1, 2.0);
+            applyZoom();
+        }
+
+        function zoomOut() {
+            csmState.zoomLevel = Math.max(csmState.zoomLevel - 0.1, 0.5);
+            applyZoom();
+        }
+
+        function resetZoom() {
+            csmState.zoomLevel = 1.0;
+            applyZoom();
+        }
+
+        function applyZoom() {
+            const container = document.getElementById('csmContainer');
+            container.style.transform = `scale(${csmState.zoomLevel})`;
+            container.style.transformOrigin = 'top left';
+        }
+
+        // Hide loading overlay
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 300);
+        }
+
+        // Export to PNG
+        function exportToPNG() {
+            const svg = document.getElementById('csmCanvas');
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas dimensions
+            canvas.width = svg.width.baseVal.value;
+            canvas.height = svg.height.baseVal.value;
+            
+            const img = new Image();
+            img.onload = function() {
+                ctx.drawImage(img, 0, 0);
+                
+                // Create download link
+                const a = document.createElement('a');
+                a.download = `Current_Stream_Map_${Date.now()}.png`;
+                a.href = canvas.toDataURL('image/png');
+                a.click();
+            };
+            
+            img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+        }
+
+        // Go back to builder page
+        function goBack() {
+            // In a real implementation, this would navigate back to the builder page
+            // For now, we'll just show an alert
+            alert('Navigating back to Process Builder. In a real application, this would return you to the previous page.');
+            // window.history.back(); // Uncomment this line for actual navigation
+        }
+
+        function goNext() {
+            // In a real implementation, this would navigate back to the builder page
+            // For now, we'll just show an alert
+            window.location.href = `csmp.html`;
+            // window.history.back(); // Uncomment this line for actual navigation
+        }
+        //Export PDF
+        async function exportToPDF() {
+            const element = document.getElementById("csmCanvas");
+
+            if (!element) {
+                alert("CSM canvas not found!");
+                return;
+            }
+
+            const canvas = await html2canvas(element, {
+                scale: 3,          // High quality
+                useCORS: true,
+                backgroundColor: "#ffffff"
+            });
+
+            const imgData = canvas.toDataURL("image/png");
+
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF("landscape", "mm", "a4");
+
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+            pdf.addImage(imgData, "PNG", 0, 10, pdfWidth, pdfHeight);
+            pdf.save("Current_State_Map.pdf");
+            }
+    </script>
+</body>
+</html>
