@@ -492,6 +492,11 @@
       ? ((totalCycleTime / (totalCycleTime + totalWaitSeconds)) * 100).toFixed(2)
       : "100.00";
 
+      const yProcess = 200;   // machine row Y
+      const yInfo = 5;       // information flow Y
+      const startX = 220;     // first machine X
+      const gap = 380;        // distance between machines
+
     return (
       <div className="modal-overlay" onClick={onClose}>
         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -502,6 +507,7 @@
           
           <div className="canvas-wrapper">
             <svg width={svgWidth} height={svgHeight} className="svg-canvas">
+              
               <defs>
                 <marker id="arrow" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
                   <path d="M0,0 L6,3 L0,6 Z" fill="#667eea" />
@@ -510,6 +516,135 @@
                   <path d="M0,0 L5,3 L0,6 Z" fill="#9333ea" />
                 </marker>
               </defs>
+              
+              {/* SUPPLIER BOX */}
+              <g>
+                <rect
+                  x="20"
+                  y={yProcess}
+                  width="160"
+                  height="100"
+                  fill="#f0f9ff"
+                  stroke="#0284c7"
+                  strokeWidth="2"
+                  rx="8"
+                  filter="drop-shadow(2px 4px 6px rgba(2,132,199,0.2))"
+                />
+                <text x="100" y={yProcess + 25} textAnchor="middle" fontWeight="700" fontSize="14" fill="#0284c7">
+                  SUPPLIER
+                </text>
+                <text x="35" y={yProcess + 50} fontSize="11">Raw Materials</text>
+                <text x="35" y={yProcess + 68} fontSize="11">Lead Time: Weekly</text>
+                <text x="35" y={yProcess + 86} fontSize="11">Delivery: Truck</text>
+              </g>
+
+              {/* CUSTOMER BOX */}
+              <g>
+              <rect
+                x={svgWidth - 170}
+                y={yProcess}
+                width="160"
+                height="100"
+                fill="#fef3c7"
+                stroke="#f59e0b"
+                strokeWidth="2"
+                rx="8"
+                filter="drop-shadow(2px 4px 6px rgba(245,158,11,0.2))"
+              />
+              <text x={svgWidth - 90} y={yProcess + 25} textAnchor="middle" fontWeight="700" fontSize="14" fill="#f59e0b">
+                CUSTOMER
+              </text>
+              <text x={svgWidth - 145} y={yProcess + 50} fontSize="11">Orders: Monthly</text>
+              <text x={svgWidth - 145} y={yProcess + 68} fontSize="11">Forecast: Weekly</text>
+              <text x={svgWidth - 145} y={yProcess + 86} fontSize="11">Delivery: Daily</text>
+              </g>
+
+
+              {/* PRODUCTION CONTROL */}
+                <g>
+                  <rect
+                    x={svgWidth / 2 - 100}
+                    y={yInfo}
+                    width="200"
+                    height="80"
+                    fill="#f3e8ff"
+                    stroke="#9333ea"
+                    strokeWidth="2"
+                    rx="8"
+                    filter="drop-shadow(2px 4px 6px rgba(147,51,234,0.2))"
+                  />
+                  <text x={svgWidth / 2} y={yInfo + 25} textAnchor="middle" fontWeight="700" fontSize="13" fill="#9333ea">
+                    PRODUCTION CONTROL
+                  </text>
+                  <text x={svgWidth - 940} y={yInfo + 50} fontSize="10">
+                    MRP / ERP System
+                  </text>
+                </g>
+
+              {/*Customer → Production Control*/} 
+                <path
+                  d={`M ${svgWidth - 90} ${yProcess}
+                      L ${svgWidth - 90} ${yInfo + 40}
+                      L ${svgWidth - 770} ${yInfo + 40}`}
+
+                  stroke="#9333ea"
+                  strokeDasharray="5,5"
+                  strokeWidth="2"
+                  fill="none"
+                  markerEnd="url(#infoArrow)"
+                  />
+
+              {/*Production Control → Supplier*/} 
+                <path
+                  d={`M ${svgWidth / 2 - 100} ${yInfo + 40}
+                      L 100 ${yInfo + 40}
+                      L 100 ${yProcess}`}
+                  stroke="#9333ea"
+                  strokeDasharray="5,5"
+                  strokeWidth="2"
+                  fill="none"
+                  markerEnd="url(#infoArrow)"
+                />
+
+              {/*Production Control → Each Machine*/} 
+                {layoutNodes
+                  .filter(n => n.type === "machine")
+                  .map((node, i) => (
+                    <line
+                      key={`info-${i}`}
+                      x1={svgWidth / 2}
+                      y1={yInfo + 80}
+                      x2={node.x + 100}
+                      y2={node.y}
+                      stroke="#9333ea"
+                      strokeWidth="1.5"
+                      strokeDasharray="5,5"
+                      markerEnd="url(#infoArrow)"
+                    />
+                ))}
+
+              {/*Supplier → First Machine*/}  
+              <line
+                x1="100"
+                y1={yProcess + 100}
+                x2={layoutNodes[0].x}
+                y2={layoutNodes[0].y + 75}
+                stroke="#667eea"
+                strokeWidth="3"
+                markerEnd="url(#arrow)"
+              />
+
+              {/*Last Machine → Customer*/}
+              <line
+                x1={layoutNodes[layoutNodes.length - 1].x + 200}
+                y1={layoutNodes[layoutNodes.length - 1].y + 75}
+                x2={svgWidth - 95}
+                y2={yProcess + 102}
+                stroke="#667eea"
+                strokeWidth="3"
+                markerEnd="url(#arrow)"
+              />
+    
 
               {/* Render Edges */}
               {nodeGraph.edges.map((edge, i) => {
@@ -625,9 +760,133 @@
                 }
                 return null;
               })}
+              
+
+              {/* Lead Time Ladder */}
+              <g transform={`translate(100, ${svgHeight - 200})`}>
+                {(() => {
+                  let cumulativeTime = 0;
+                  const ladderSegments = [];
+                  const segmentWidth = 120;
+                  const ladderHeight = 60;
+                  
+                  // Build ladder segments from connections and machines
+                  layoutNodes
+                    .sort((a, b) => a.level - b.level || a.y - b.y)
+                    .forEach((node, idx) => {
+                      if (node.type === 'machine') {
+                        const cycleTimeSec = Number(node.data.cycleTime || 0);
+                        const cycleTimeDays = cycleTimeSec / 86400;
+                        
+                        ladderSegments.push({
+                          type: 'process',
+                          time: cycleTimeSec,
+                          displayTime: `${cycleTimeSec}s`,
+                          cumulative: cumulativeTime,
+                          label: node.data.name || `M${idx + 1}`
+                        });
+                        
+                        cumulativeTime += cycleTimeDays;
+                        
+                        // Find inventory after this machine
+                        const outgoingEdge = nodeGraph.edges.find(e => e.from === node.id);
+                        if (outgoingEdge && outgoingEdge.inventoryDays > 0) {
+                          ladderSegments.push({
+                            type: 'wait',
+                            time: outgoingEdge.inventoryDays,
+                            displayTime: `${outgoingEdge.inventoryDays}d`,
+                            cumulative: cumulativeTime,
+                            label: 'Inventory'
+                          });
+                          cumulativeTime += Number(outgoingEdge.inventoryDays);
+                        }
+                      }
+                    });
+
+                  return (
+                    <>
+                      {/* Ladder Title */}
+                      <text x="0" y="-20" fontSize="14" fontWeight="700" fill="#1f2937">
+                        Lead Time Ladder
+                      </text>
+                      
+                      {/* Draw ladder segments */}
+                      {ladderSegments.map((segment, i) => {
+                        const x = i * segmentWidth;
+                        const isWait = segment.type === 'wait';
+                        
+                        return (
+                          <g key={i}>
+                            {/* Horizontal line */}
+                            <line
+                              x1={x}
+                              y1={isWait ? 0 : ladderHeight}
+                              x2={x + segmentWidth}
+                              y2={isWait ? 0 : ladderHeight}
+                              stroke="#667eea"
+                              strokeWidth="3"
+                            />
+                            
+                            {/* Vertical drop/rise */}
+                            <line
+                              x1={x + segmentWidth}
+                              y1={isWait ? 0 : ladderHeight}
+                              x2={x + segmentWidth}
+                              y2={isWait ? ladderHeight : 0}
+                              stroke="#667eea"
+                              strokeWidth="3"
+                            />
+                            
+                            {/* Time label on segment */}
+                            <text
+                              x={x + segmentWidth / 2}
+                              y={isWait ? -8 : ladderHeight - 8}
+                              textAnchor="middle"
+                              fontSize="11"
+                              fontWeight="600"
+                              fill={isWait ? "#f59e0b" : "#10b981"}
+                            >
+                              {segment.displayTime}
+                            </text>
+                            
+                            {/* Process/Wait label */}
+                            <text
+                              x={x + segmentWidth / 2}
+                              y={isWait ? 15 : ladderHeight + 20}
+                              textAnchor="middle"
+                              fontSize="9"
+                              fill="#6b7280"
+                            >
+                              {segment.label}
+                            </text>
+                            
+                            {/* Cumulative time at each step */}
+                            <text
+                              x={x + segmentWidth}
+                              y={ladderHeight + 45}
+                              textAnchor="middle"
+                              fontSize="10"
+                              fontWeight="600"
+                              fill="#667eea"
+                            >
+                              {segment.cumulative.toFixed(2)}d
+                            </text>
+                          </g>
+                        );
+                      })}
+                      
+                      {/* Starting point */}
+                      <circle cx="0" cy={ladderHeight} r="4" fill="#667eea" />
+                      <text x="0" y={ladderHeight + 45} textAnchor="middle" fontSize="10" fontWeight="600" fill="#667eea">
+                        0d
+                      </text>
+                    </>
+                  );
+                })()}
+              </g>
 
               {/* Summary Metrics */}
-              <g transform={`translate(220, ${svgHeight - 120})`}>
+              <g transform={`translate(220, ${svgHeight - 50})`}>
                 <rect x="0" y="0" width="180" height="45" fill="#d1fae5" stroke="#10b981" strokeWidth="2" rx="6" />
                 <text x="90" y="18" textAnchor="middle" fontSize="11" fill="#065f46" fontWeight="600">
                   Total Cycle Time
@@ -1055,6 +1314,7 @@
           + Add Connection
         </button>
       </div>
+
 
       {/* Generate VSM Button */}
       <button className="button-primary" onClick={generateVSM}>
