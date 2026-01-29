@@ -6,7 +6,7 @@ import CSMCanvas from "./CSMCanvas";
 const styles = `
   .app-wrapper {
     min-height: 100vh;
-    background: linear-gradient(135deg,rgb(167, 168, 176) 0%,rgb(43, 43, 44) 100%);
+    background: linear-gradient(135deg,rgb(127, 140, 233) 0%,rgb(43, 43, 44) 100%);
     padding: 2rem;
   }
 
@@ -405,7 +405,7 @@ function App() {
       <style>{styles}</style>
       <div className="app-wrapper">
         <div className="header">
-          <h1 className="title">Current Stream Mapping</h1>
+          <h1 className="title">Current State Mapping</h1>
         </div>
 
         <div className="container">
@@ -680,7 +680,7 @@ function App() {
 
           {/* Generate VSM Button */}
           <button className="button-primary" onClick={generateVSM}>
-            Generate Current Stream Map
+            Generate Current State Map
           </button>
         </div>
 
