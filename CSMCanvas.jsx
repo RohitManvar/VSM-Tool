@@ -460,7 +460,7 @@ function CSMCanvas({ machines, connections, onClose }) {
       tempContainer.appendChild(svgClone);
 
       // Convert SVG to canvas
-      setExportStatus('Converting to image...');
+      setExportStatus('Converting to PDF...');
       const canvas = await html2canvas(tempContainer, {
         backgroundColor: '#ffffff',
         scale: 2,
@@ -522,109 +522,88 @@ function CSMCanvas({ machines, connections, onClose }) {
   };
 
   const exportA4MultiPage = async (imgData, imgWidth, imgHeight) => {
-    setExportStatus("Optimizing A4 layout...");
+    setExportStatus("Auto-adjusting A4 pages...");
   
     const pdf = new jsPDF({
-      orientation: "landscape",
+      orientation: "portrait",
       unit: "mm",
       format: "a4"
     });
   
-    const pageWidth = pdf.internal.pageSize.getWidth();   // 297
-    const pageHeight = pdf.internal.pageSize.getHeight(); // 210
+    const pageWidth = pdf.internal.pageSize.getWidth();   // 210
+    const pageHeight = pdf.internal.pageSize.getHeight(); // 297
   
-    const margin = 15;
-    const usableWidth = pageWidth - margin * 2;
-    const usableHeight = pageHeight - margin * 2;
+    const marginX = 0;      // no left/right margin (wall print)
+    const marginY = 12;     // safe top/bottom margin
   
-    // 👉 MAX pages you want
-    const MAX_PAGES = 6;
+    const usableWidth = pageWidth - marginX * 2;
+    const usableHeight = pageHeight - marginY * 2;
   
-    // Scale image to fit width
-    const scale = usableWidth / imgWidth;
-    const scaledHeight = imgHeight * scale;
+    // Fit by height (VSM best practice)
+    const scale = usableHeight / imgHeight;
+    const scaledImgWidth = imgWidth * scale;
   
-    // Calculate required pages
-    let pagesNeeded = Math.ceil(scaledHeight / usableHeight);
+    // Auto page calculation (small → large flows)
+    const pagesNeeded = Math.ceil(scaledImgWidth / usableWidth);
+    const pages = Math.min(Math.max(pagesNeeded, 1), 12);
   
-    // 🚨 Cap pages
-    if (pagesNeeded > MAX_PAGES) {
-      pagesNeeded = MAX_PAGES;
-    }
-  
-    // Recalculate scale so it fits capped pages
-    const finalScale =
-      (usableHeight * pagesNeeded) / imgHeight;
-  
-    const finalImgWidth = imgWidth * finalScale;
-    const finalImgHeight = imgHeight * finalScale;
-  
-    // Convert image to canvas
     const img = new Image();
     img.src = imgData;
-    await new Promise(resolve => (img.onload = resolve));
+    await new Promise(res => (img.onload = res));
   
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
+    const sourceCanvas = document.createElement("canvas");
+    sourceCanvas.width = imgWidth;
+    sourceCanvas.height = imgHeight;
+    sourceCanvas.getContext("2d").drawImage(img, 0, 0);
   
-    canvas.width = imgWidth;
-    canvas.height = imgHeight;
-    ctx.drawImage(img, 0, 0);
+    const sliceWidthPx = imgWidth / pages;
   
-    for (let page = 0; page < pagesNeeded; page++) {
-      if (page > 0) pdf.addPage();
+    for (let i = 0; i < pages; i++) {
+      if (i > 0) pdf.addPage();
   
-      const srcY =
-        (imgHeight / pagesNeeded) * page;
-      const srcHeight =
-        imgHeight / pagesNeeded;
+      const sliceCanvas = document.createElement("canvas");
+      sliceCanvas.width = sliceWidthPx;
+      sliceCanvas.height = imgHeight;
   
-      const tempCanvas = document.createElement("canvas");
-      tempCanvas.width = imgWidth;
-      tempCanvas.height = srcHeight;
+      const ctx = sliceCanvas.getContext("2d");
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
   
-      const tempCtx = tempCanvas.getContext("2d");
-      tempCtx.fillStyle = "#fff";
-      tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-  
-      tempCtx.drawImage(
-        canvas,
+      ctx.drawImage(
+        sourceCanvas,
+        sliceWidthPx * i,
         0,
-        srcY,
-        imgWidth,
-        srcHeight,
+        sliceWidthPx,
+        imgHeight,
         0,
         0,
-        imgWidth,
-        srcHeight
+        sliceWidthPx,
+        imgHeight
       );
   
-      const sliceData = tempCanvas.toDataURL("image/png", 1.0);
-  
-      const displayHeight = finalImgHeight / pagesNeeded;
-  
       pdf.addImage(
-        sliceData,
+        sliceCanvas.toDataURL("image/png", 1.0),
         "PNG",
-        margin,
-        margin,
-        finalImgWidth,
-        displayHeight
+        0,          // flush left
+        marginY,    // top safe margin
+        usableWidth,
+        usableHeight
       );
   
       // Footer
       pdf.setFontSize(10);
       pdf.setTextColor(100);
       pdf.text(
-        `Page ${page + 1} of ${pagesNeeded}`,
+        `Page ${i + 1} of ${pages}`,
         pageWidth / 2,
-        pageHeight - 5,
+        pageHeight - 6,
         { align: "center" }
       );
     }
   
-    pdf.save("value-stream-map-A4.pdf");
+    pdf.save("value-stream-map-A4-auto.pdf");
   };
+
   
   return (
     <>
@@ -676,7 +655,34 @@ function CSMCanvas({ machines, connections, onClose }) {
         )}
         
         <div className="canvas-wrapper">
-          <svg width={positions.svgWidth} height={positions.svgHeight} className="svg-canvas">
+          <TransformWrapper
+            initialScale={1}
+            minScale={0.2}
+            maxScale={4}
+            wheel={{ step: 0.1 }}
+            doubleClick={{ step: 1 }}
+            pinch={{ step: 5 }}
+            panning={{ velocityDisabled: false }}
+            limitToBounds={false}
+            centerOnInit
+          >
+            <TransformComponent
+              wrapperStyle={{
+                width: "100%",
+                height: "100%",
+                overflow: "hidden",
+                cursor: "grab"
+              }}
+              contentStyle={{
+                width: positions.svgWidth,
+                height: positions.svgHeight
+              }}
+            >
+              <svg
+                width={positions.svgWidth}
+                height={positions.svgHeight}
+                className="svg-canvas"
+              >
             
             <defs>
               <marker id="arrow" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
@@ -872,13 +878,13 @@ function CSMCanvas({ machines, connections, onClose }) {
                     <g>
                       <polygon
                         points={`${midX - 12},${midY - 5} ${midX + 12},${midY - 5} ${midX},${midY - 25}`}
-                        fill="#f59e0b"
+                        fill="#2597ba"
                         stroke="#92400e"
                         strokeWidth="1.5"
                       />
                       <text
                         x={midX}
-                        y={midY - 15}
+                        y={midY - 8}
                         textAnchor="middle"
                         fontSize="11"
                         fontWeight="bold"
@@ -1128,7 +1134,9 @@ function CSMCanvas({ machines, connections, onClose }) {
                 {valueAddedRatio}%
               </text>
             </g>
-          </svg>
+            </svg>
+          </TransformComponent>
+          </TransformWrapper>
         </div>
       </div>
     </>
