@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Export and Reporting Center - VSM Automation</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#136dec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101822",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .document-shadow { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark px-10 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-6">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight">VSM Automation</h2>
+</div>
+<div class="flex flex-1 justify-end gap-8">
+<nav class="flex items-center gap-9">
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Projects</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Analysis</a>
+<a class="text-primary text-sm font-bold border-b-2 border-primary py-1" href="#">Export</a>
+</nav>
+<div class="flex gap-2">
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-slate-200 dark:border-slate-700" data-alt="User profile avatar of a manufacturing engineer" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAqzJPLztCvaeazGdP4fgAk8ZNLK6faVXyVI5W1Q3KEGGpv3GRhfuqW2kKf92O6oXKqrNzjCU-XxgZu6zUw__Iv2kzAG597utQUVmsraA0AgT-SIvor9oCK4CINa1XbCSpPsRebD3Wc2qpOk-W4fFedJ53mESG83OcH5HptMvXUBEvVCbfn4-IEKWTPNMTDWwLC-viDso6EaTsYWq8f0Y-DK7iKM8FY_OPZy49XGlPsKVLH205wAbyp0JWoVJ_wN8Jf_zLoF1Zm3ys");'></div>
+</div>
+</div>
+</header>
+<main class="flex-1 flex flex-col max-w-[1440px] mx-auto w-full px-6 py-6">
+<!-- Breadcrumbs -->
+<div class="flex flex-wrap gap-2 items-center mb-6">
+<a class="text-slate-500 dark:text-slate-400 text-sm font-medium hover:text-primary" href="#">Projects</a>
+<span class="material-symbols-outlined text-slate-400 text-[16px]">chevron_right</span>
+<a class="text-slate-500 dark:text-slate-400 text-sm font-medium hover:text-primary" href="#">Chassis Assembly Line</a>
+<span class="material-symbols-outlined text-slate-400 text-[16px]">chevron_right</span>
+<span class="text-slate-900 dark:text-white text-sm font-semibold">Export &amp; Reporting</span>
+</div>
+<div class="flex gap-8 items-start">
+<!-- Left: Document Preview Area -->
+<div class="flex-1 flex flex-col gap-6">
+<!-- PageHeading -->
+<div class="flex flex-wrap justify-between items-end gap-3">
+<div class="flex flex-col gap-1">
+<h1 class="text-slate-900 dark:text-white text-3xl font-black leading-tight tracking-tight">Report Preview</h1>
+<p class="text-slate-500 dark:text-slate-400 text-base font-normal">Review the VSM insights before finalizing your manufacturing documentation.</p>
+</div>
+<button class="flex items-center justify-center rounded-lg h-10 px-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm font-bold gap-2">
+<span class="material-symbols-outlined text-[18px]">print</span>
+<span>Quick Print</span>
+</button>
+</div>
+<!-- Document Canvas -->
+<div class="bg-white dark:bg-slate-900 p-10 rounded-xl document-shadow min-h-[1000px] border border-slate-200 dark:border-slate-800">
+<!-- Report Internal Header -->
+<div class="flex justify-between border-b-2 border-slate-100 dark:border-slate-800 pb-8 mb-8">
+<div>
+<h2 class="text-2xl font-bold text-slate-900 dark:text-white">Value Stream Analysis Report</h2>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Project ID: #VSM-2024-082</p>
+</div>
+<div class="text-right">
+<p class="text-sm font-semibold text-slate-900 dark:text-white">Date: Oct 24, 2024</p>
+<p class="text-sm text-slate-500 dark:text-slate-400">Location: Michigan Assembly Plant</p>
+</div>
+</div>
+<!-- KPI Grid -->
+<div class="grid grid-cols-4 gap-4 mb-10">
+<div class="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg border border-primary/20">
+<p class="text-xs font-bold text-primary uppercase tracking-wider mb-1">Total Lead Time</p>
+<p class="text-2xl font-black text-slate-900 dark:text-white">14.2 Days</p>
+<p class="text-xs text-green-600 font-medium mt-1">↓ 12% from baseline</p>
+</div>
+<div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700">
+<p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Process Time</p>
+<p class="text-2xl font-black text-slate-900 dark:text-white">4.8 Hrs</p>
+<p class="text-xs text-slate-400 mt-1">Active labor time</p>
+</div>
+<div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700">
+<p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Takt Time</p>
+<p class="text-2xl font-black text-slate-900 dark:text-white">95 Sec</p>
+<p class="text-xs text-red-500 font-medium mt-1">Target: 90 Sec</p>
+</div>
+<div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700">
+<p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">PCE %</p>
+<p class="text-2xl font-black text-slate-900 dark:text-white">3.2%</p>
+<p class="text-xs text-slate-400 mt-1">Process Efficiency</p>
+</div>
+</div>
+<!-- Visualization Preview -->
+<div class="mb-10">
+<h3 class="text-lg font-bold mb-4 text-slate-900 dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">schema</span>
+                            Current State Value Stream Map
+                        </h3>
+<div class="w-full h-64 bg-slate-50 dark:bg-slate-800 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center relative overflow-hidden">
+<div class="absolute inset-0 opacity-10" data-alt="Subtle grid pattern for map background" style="background-image: radial-gradient(#136dec 1px, transparent 1px); background-size: 20px 20px;"></div>
+<div class="flex flex-col items-center gap-2 z-10">
+<div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl">image</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">SVG Map Rendering Preview</p>
+</div>
+</div>
+</div>
+<!-- Bottlenecks Section -->
+<div>
+<h3 class="text-lg font-bold mb-4 text-slate-900 dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-red-500">warning</span>
+                            Critical Bottleneck Analysis
+                        </h3>
+<div class="space-y-3">
+<div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border-l-4 border-red-500">
+<div>
+<p class="font-bold text-slate-900 dark:text-white">Welding Station 04</p>
+<p class="text-sm text-slate-500 dark:text-slate-400">Queue time exceeds 14 hours. High rework rate detected.</p>
+</div>
+<div class="text-right">
+<p class="text-red-600 font-bold">42% Delay</p>
+<p class="text-[10px] uppercase text-slate-400">Impact Factor</p>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border-l-4 border-amber-500">
+<div>
+<p class="font-bold text-slate-900 dark:text-white">Inbound Logistics Delay</p>
+<p class="text-sm text-slate-500 dark:text-slate-400">Unreliable lead times from vendor 'SteelCorp'.</p>
+</div>
+<div class="text-right">
+<p class="text-amber-600 font-bold">18% Delay</p>
+<p class="text-[10px] uppercase text-slate-400">Impact Factor</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Footnote -->
+<div class="mt-12 pt-6 border-t border-slate-100 dark:border-slate-800 flex justify-between text-[10px] text-slate-400 uppercase tracking-widest font-bold">
+<span>Generated by VSM Automation Tool v2.4</span>
+<span>Page 1 of 1</span>
+</div>
+</div>
+</div>
+<!-- Right: Action Sidebar -->
+<aside class="w-80 shrink-0 sticky top-24">
+<!-- SideNavBar logic applied to Export Center -->
+<div class="flex flex-col gap-6 bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex flex-col gap-1">
+<h2 class="text-slate-900 dark:text-white text-lg font-bold">Export Center</h2>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-normal">Choose format and settings</p>
+</div>
+<div class="space-y-4">
+<!-- PDF Option -->
+<div class="p-4 rounded-xl border-2 border-primary bg-primary/5 dark:bg-primary/10">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+</div>
+<div>
+<p class="text-sm font-bold text-slate-900 dark:text-white">PDF Document</p>
+<p class="text-[11px] text-slate-500 dark:text-slate-400">Full formal report</p>
+</div>
+</div>
+<button class="w-full flex items-center justify-center gap-2 py-2 bg-primary text-white rounded-lg text-sm font-bold transition-all hover:bg-blue-700">
+<span>Download PDF</span>
+<span class="material-symbols-outlined text-[18px]">download</span>
+</button>
+</div>
+<!-- PNG Option -->
+<div class="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+<span class="material-symbols-outlined">image</span>
+</div>
+<div>
+<p class="text-sm font-bold text-slate-900 dark:text-white">High-Res PNG</p>
+<p class="text-[11px] text-slate-500 dark:text-slate-400">Map visualization only</p>
+</div>
+</div>
+<button class="w-full flex items-center justify-center gap-2 py-2 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700">
+<span>Save Image</span>
+<span class="material-symbols-outlined text-[18px]">download</span>
+</button>
+</div>
+<!-- CSV Option -->
+<div class="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div>
+<p class="text-sm font-bold text-slate-900 dark:text-white">CSV Data</p>
+<p class="text-[11px] text-slate-500 dark:text-slate-400">Raw process metrics</p>
+</div>
+</div>
+<button class="w-full flex items-center justify-center gap-2 py-2 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700">
+<span>Export Data</span>
+<span class="material-symbols-outlined text-[18px]">download</span>
+</button>
+</div>
+</div>
+<!-- Settings logic from components -->
+<div class="border-t border-slate-100 dark:border-slate-800 pt-4">
+<p class="text-[11px] font-bold text-slate-400 uppercase mb-3 px-1">Report Components</p>
+<div class="space-y-3">
+<label class="flex items-center justify-between cursor-pointer px-1">
+<span class="text-xs font-medium text-slate-700 dark:text-slate-300">KPI Dashboards</span>
+<input checked="" class="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+</label>
+<label class="flex items-center justify-between cursor-pointer px-1">
+<span class="text-xs font-medium text-slate-700 dark:text-slate-300">Bottleneck Details</span>
+<input checked="" class="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+</label>
+<label class="flex items-center justify-between cursor-pointer px-1">
+<span class="text-xs font-medium text-slate-700 dark:text-slate-300">Future State Map</span>
+<input class="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+</label>
+</div>
+</div>
+<button class="flex min-w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-11 px-4 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-bold leading-normal tracking-tight hover:bg-slate-200 dark:hover:bg-slate-700 mt-2">
+<span class="truncate">Generate Bundle (ZIP)</span>
+</button>
+</div>
+<div class="mt-4 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/30 flex gap-3">
+<span class="material-symbols-outlined text-amber-600">info</span>
+<p class="text-[11px] text-amber-800 dark:text-amber-200">Changes made here only affect the exported document, not the live VSM project data.</p>
+</div>
+</aside>
+</div>
+</main>
+<footer class="mt-auto py-8 border-t border-slate-200 dark:border-slate-800 text-center text-slate-400 text-xs">
+        © 2024 VSM Automation Tool. Professional Manufacturing Systems.
+    </footer>
+</body></html>

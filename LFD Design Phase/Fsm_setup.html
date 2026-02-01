@@ -39,29 +39,33 @@
 <body class="bg-background-light dark:bg-background-dark font-display text-[#0d131b] dark:text-slate-200">
     <div class="relative flex min-h-screen w-full flex-col">
         <!-- Top Navigation Bar -->
-        <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark px-10 py-3 sticky top-0 z-50">
-            <div class="flex items-center gap-8">
-                <div class="flex items-center gap-4 text-primary">
-                    <div class="flex items-center gap-3">
-                        <div class="size-10 bg-white rounded-lg flex items-center justify-center shadow-lg">
-                            <img
-                                src="D:/Faber Infinite/LFD Design Phase/logo.jpg"
-                                alt="Company Logo"
-                                class="w-6 h-6 object-contain"
-                            />
-                        </div>
-                    </div>
-                    <h2 class="text-[#0d131b] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">VSM</h2>
+        <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-10 py-3 sticky top-0 z-50">
+            <div class="flex items-center gap-4">
+                <div class="size-10 bg-white rounded-lg flex items-center justify-center shadow-lg">
+                    <img
+                      src="D:/Faber Infinite/LFD Design Phase/logo.jpg"
+                      alt="Company Logo"
+                      class="w-6 h-6 object-contain"
+                    />
+                  </div>
+            <h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight">VSM</h2>
+            </div>
+            <div class="flex flex-1 justify-end gap-8">
+            <nav class="flex items-center gap-9">
+            <a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="dashboard.html">Dashboard</a>
+            <a class="text-primary text-sm font-bold" href="#">Projects</a>
+            <!-- <a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Templates</a>
+            <a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Reports</a> -->
+            </nav>
+            <div class="flex items-center gap-3">
+                <div class="text-right hidden sm:block">
+                <p class="text-sm font-semibold leading-none">User</p>
+                <p class="text-xs text-slate-500 mt-1">Role</p>
                 </div>
-                <nav class="flex items-center gap-9">
-                    <a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Dashboard</a>
-                    <a class="text-primary text-sm font-bold" href="#">Projects</a>
-                </nav>
-            </div>
-            <div class="flex flex-1 justify-end gap-6 items-center">
-                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-slate-200" data-alt="User avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD9VgUy0-9hhet-G5pt-5LE7ym_udv4S5tX-wWbZEI-hmG68eB9A8kCJjw-JxPyQAooz7ip3FKIVG5buKl9sxktlcNJYTMOBJS7L5dd9Fzizo3wrxLzrnetxRtvCj_lhI_m_ZasNZuuDytBaiTloMvQFFbAEZpgFzVdRHuqfGECqaVa6gnGg1YRbEDluc9lJRjs_4EF-_sOrnHY7xvolo7dMcJ4JATH8BibDDQ7lOcLHe6kd5Wx2H-YQCq5M3Mwa1OAfKXo-pM2Lbs");'></div>
-            </div>
-        </header>
+                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-slate-200 dark:border-slate-700" data-alt="User profile portrait of a professional engineer" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAGdcX9iXvlAWOnkPS21Zd_ObadEl7CsETnj3HI1th4zEuVXGh93e_aG8gYtw1Dexw3Wju20IYOkOhVUye6zA0lZ8pskCQQNiD-o82ii7YEcFwDRLFUwf0TikrUZSroIku6fexYNiIvMFHvTia_PMwgazPcd_BSU-4Zqb47FvDVGIp8DfqPmxcMT8XkgS9xC9g8MUz67EnVrXOv9McXhmdTf0YwtJePX3XSXk0iDI7gY6XOlUNYiHVFBa35Ij93MrXSqXriTRh-_ZY");'></div>
+                </div>
+            </header>
+            
         
         <div class="flex flex-1">
             <!-- Sidebar Navigation -->
@@ -73,7 +77,7 @@
                 <div class="flex flex-col gap-1">
                     <div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary">
                         <span class="material-symbols-outlined font-bold">account_tree</span>
-                        <p class="text-sm font-bold">Process Builder</p>
+                        <p class="text-sm font-bold">Improvement Builder</p>
                     </div>
                 </div>
             </aside>
@@ -107,7 +111,7 @@
                 </div>
                 
                 <!-- Metrics Dashboard Mini-summary -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     <div class="flex flex-col gap-1 rounded-xl p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
                         <div class="flex items-center gap-2 text-[#4c6c9a] mb-1">
                             <span class="material-symbols-outlined text-lg">timer</span>
@@ -129,7 +133,7 @@
                         </div>
                         <p class="text-[#0d131b] dark:text-white text-3xl font-bold tracking-tight" id="processSteps">0 <span class="text-sm font-normal text-slate-400 uppercase">steps</span></p>
                     </div>
-                </div>
+                </div> -->
                 
                 <!-- Process Steps List -->
                 <div class="mb-8 p-6 bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
@@ -297,8 +301,9 @@
                 </div>
             </div>
             <div class="flex items-center gap-4">
+                <button onclick="window.location.href='csmp.html'" class="px-6 py-2 rounded-lg text-slate-700 dark:text-slate-200 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Previous</button>
                 <button onclick="resetAll()" class="px-6 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">Reset All</button>
-                <button onclick="generateVSM()" class="px-8 py-2.5 bg-primary text-white rounded-lg font-bold shadow-lg shadow-primary/25 hover:translate-y-[-1px] transition-all">Generate Future State</button>
+                <button onclick="window.location.href='fsmp.html'" class="px-8 py-2.5 bg-primary text-white rounded-lg font-bold shadow-lg shadow-primary/25 hover:translate-y-[-1px] transition-all">Generate Future State</button>
             </div>
         </footer>
     </div>

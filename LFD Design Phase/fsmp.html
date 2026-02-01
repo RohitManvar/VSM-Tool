@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Future Stream Map - VSM</title>
+    <title>Future State Map - VSM</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -64,18 +64,26 @@
                 <div class="flex items-center gap-4 text-primary">
                     <div class="flex items-center gap-3">
                         <div class="size-10 bg-white rounded-lg flex items-center justify-center shadow-lg">
-                            <div class="w-6 h-6 bg-vsm-blue rounded-md flex items-center justify-center text-white font-bold text-xs">VSM</div>
+                            <img
+                                src="D:/Faber Infinite/LFD Design Phase/logo.jpg"
+                                alt="Company Logo"
+                                class="w-6 h-6 object-contain"
+                            />
                         </div>
                     </div>
-                    <h2 class="text-[#0d131b] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Future Stream Map</h2>
+                    <h2 class="text-[#0d131b] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Future State Map</h2>
                 </div>
                 <nav class="flex items-center gap-9">
-                    <a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#" onclick="goBack()">← Back to Builder</a>
+                    
                 </nav>
             </div>
-            <div class="flex flex-1 justify-end gap-6 items-center">
-                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-slate-200" data-alt="User avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD9VgUy0-9hhet-G5pt-5LE7ym_udv4S5tX-wWbZEI-hmG68eB9A8kCJjw-JxPyQAooz7ip3FKIVG5buKl9sxktlcNJYTMOBJS7L5dd9Fzizo3wrxLzrnetxRtvCj_lhI_m_ZasNZuuDytBaiTloMvQFFbAEZpgFzVdRHuqfGECqaVa6gnGg1YRbEDluc9lJRjs_4EF-_sOrnHY7xvolo7dMcJ4JATH8BibDDQ7lOcLHe6kd5Wx2H-YQCq5M3Mwa1OAfKXo-pM2Lbs");'></div>
-            </div>
+            <div class="flex items-center gap-3">
+                <div class="text-right hidden sm:block">
+                <p class="text-sm font-semibold leading-none">User</p>
+                <p class="text-xs text-slate-500 mt-1">Role</p>
+                </div>
+                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-slate-200 dark:border-slate-700" data-alt="User profile portrait of a professional engineer" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAGdcX9iXvlAWOnkPS21Zd_ObadEl7CsETnj3HI1th4zEuVXGh93e_aG8gYtw1Dexw3Wju20IYOkOhVUye6zA0lZ8pskCQQNiD-o82ii7YEcFwDRLFUwf0TikrUZSroIku6fexYNiIvMFHvTia_PMwgazPcd_BSU-4Zqb47FvDVGIp8DfqPmxcMT8XkgS9xC9g8MUz67EnVrXOv9McXhmdTf0YwtJePX3XSXk0iDI7gY6XOlUNYiHVFBa35Ij93MrXSqXriTRh-_ZY");'></div>
+                </div>
         </header>
         
         <div class="flex flex-1">
@@ -144,7 +152,7 @@
                 <!-- Canvas Header -->
                 <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
                     <div class="flex flex-col gap-1">
-                        <h1 class="text-[#0d131b] dark:text-white text-3xl font-black tracking-tight">Future Stream Map Visualization</h1>
+                        <h1 class="text-[#0d131b] dark:text-white text-3xl font-black tracking-tight">Future State Map Visualization</h1>
                         <p class="text-[#4c6c9a] dark:text-slate-400 text-base">Interactive visualization of your manufacturing process flow with cycle times and inventory buffers.</p>
                     </div>
                     <div class="flex gap-3">
@@ -184,7 +192,7 @@
                     <!-- Loading Overlay -->
                     <div id="loadingOverlay" class="absolute inset-0 bg-white/80 dark:bg-slate-900/80 flex flex-col items-center justify-center z-10 transition-opacity duration-300">
                         <div class="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-                        <p class="text-lg font-semibold text-slate-700 dark:text-slate-300">Generating Future Stream Map...</p>
+                        <p class="text-lg font-semibold text-slate-700 dark:text-slate-300">Generating Future State Map...</p>
                     </div>
                 </div>
                 
@@ -244,8 +252,8 @@
                             <span class="material-symbols-outlined text-3xl text-purple-500">target</span>
                         </div>
                         <div class="flex items-center gap-4">
-                            <button class="px-6 py-2 rounded-lg text-slate-700 dark:text-slate-200 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Previous</button>
-                            <button onclick="goNext()" class="px-8 py-2.5 bg-primary text-white rounded-lg font-bold shadow-lg shadow-primary/25 hover:translate-y-[-1px] transition-all">Towards Future State</button>
+                            <button onclick="window.location.href='fsm_setup.html'" class="px-6 py-2 rounded-lg text-slate-700 dark:text-slate-200 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Previous</button>
+                            <button onclick="goNext()" class="px-8 py-2.5 bg-primary text-white rounded-lg font-bold shadow-lg shadow-primary/25 hover:translate-y-[-1px] transition-all">Reports</button>
                         </div>
                     </footer>
                 </div>
