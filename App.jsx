@@ -308,6 +308,9 @@ function App() {
   const [machines, setMachines] = useState([createMachine()]);
   const [connections, setConnections] = useState([{ from: "", to: "", inventoryDays: "" }]);
   const [showVSM, setShowVSM] = useState(false);
+  const [supplierInventoryDays, setSupplierInventoryDays] = useState("");
+  const [customerInventoryDays, setCustomerInventoryDays] = useState("");
+
 
   const handleExcelUpload = (e) => {
     const file = e.target.files[0];
@@ -498,7 +501,7 @@ function App() {
           {/* Machines Section */}
           <div className="section">
             <h2 className="section-title">Machine Configuration</h2>
-            
+
             <div className="table-wrapper">
               <table className="table">
                 <thead>
@@ -619,6 +622,35 @@ function App() {
             </div>
           </div>
 
+          {/* Static Start & End Inventory */}
+          <div className="section">
+            <h2 className="section-title">Start & End Inventory</h2>
+
+            <div className="grid">
+              <div>
+                <label style={{ fontWeight: 600 }}>Supplier to First Process Inventory (days)</label>
+                <input
+                  className="input"
+                  type="number"
+                  placeholder="Days before first machine"
+                  value={supplierInventoryDays}
+                  onChange={(e) => setSupplierInventoryDays(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontWeight: 600 }}>Last Process to Customer Inventory (days)</label>
+                <input
+                  className="input"
+                  type="number"
+                  placeholder="Days after last machine"
+                  value={customerInventoryDays}
+                  onChange={(e) => setCustomerInventoryDays(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Process Connections */}
           <div className="section">
             <h2 className="section-title">Process Flow Connections</h2>
@@ -688,8 +720,11 @@ function App() {
           <CSMCanvas
             machines={machines}
             connections={connections}
+            supplierInventoryDays={supplierInventoryDays}
+            customerInventoryDays={customerInventoryDays}
             onClose={() => setShowVSM(false)}
           />
+
         )}
       </div>
     </>
